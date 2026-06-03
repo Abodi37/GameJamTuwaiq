@@ -8,8 +8,8 @@ public class MainMenu : MonoBehaviour
 
     [Header("Panels Optional")]
     public GameObject mainPanel;
-    public GameObject settingsPanel;
-    public GameObject creditsPanel;
+    public GameObject pausePanel;
+  
 
     void Start()
     {
@@ -38,11 +38,10 @@ public class MainMenu : MonoBehaviour
         if (mainPanel != null)
             mainPanel.SetActive(true);
 
-        if (settingsPanel != null)
-            settingsPanel.SetActive(false);
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
 
-        if (creditsPanel != null)
-            creditsPanel.SetActive(false);
+        
     }
 
     public void ShowSettingsPanel()
@@ -50,11 +49,10 @@ public class MainMenu : MonoBehaviour
         if (mainPanel != null)
             mainPanel.SetActive(false);
 
-        if (settingsPanel != null)
-            settingsPanel.SetActive(true);
+        if (pausePanel != null)
+            pausePanel.SetActive(true);
 
-        if (creditsPanel != null)
-            creditsPanel.SetActive(false);
+  
     }
 
     public void ShowCreditsPanel()
@@ -62,10 +60,8 @@ public class MainMenu : MonoBehaviour
         if (mainPanel != null)
             mainPanel.SetActive(false);
 
-        if (settingsPanel != null)
-            settingsPanel.SetActive(false);
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
 
-        if (creditsPanel != null)
-            creditsPanel.SetActive(true);
     }
 }
