@@ -7,11 +7,16 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
-    [Header("Texts")]
+    [Header("Main UI")]
     public TMP_Text healthText;
     public TMP_Text shiftText;
     public TMP_Text roomText;
+
+    [Header("Objective UI")]
+    public GameObject objectivePanel;
     public TMP_Text objectiveText;
+
+    [Header("Interact UI")]
     public TMP_Text interactText;
 
     [Header("Dialogue UI")]
@@ -41,7 +46,8 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        ShowInteract("");
+        if (objectivePanel != null)
+            objectivePanel.SetActive(true);
 
         if (dialoguePanel != null)
             dialoguePanel.SetActive(false);
@@ -52,10 +58,12 @@ public class UIManager : MonoBehaviour
         if (pausePanel != null)
             pausePanel.SetActive(false);
 
+        ShowInteract("");
+
         if (damageFlashImage != null)
         {
             Color c = damageFlashImage.color;
-            c.a = 0;
+            c.a = 0f;
             damageFlashImage.color = c;
         }
     }
@@ -80,8 +88,17 @@ public class UIManager : MonoBehaviour
 
     public void SetObjective(string objective)
     {
+        if (objectivePanel != null)
+            objectivePanel.SetActive(true);
+
         if (objectiveText != null)
             objectiveText.text = objective;
+    }
+
+    public void ClearObjective()
+    {
+        if (objectiveText != null)
+            objectiveText.text = "";
     }
 
     public void ShowInteract(string message)
@@ -148,7 +165,6 @@ public class UIManager : MonoBehaviour
         while (timer < flashDuration)
         {
             timer += Time.deltaTime;
-
             c.a = Mathf.Lerp(0.5f, 0f, timer / flashDuration);
             damageFlashImage.color = c;
 
