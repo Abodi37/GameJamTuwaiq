@@ -12,6 +12,12 @@ public class PlayerMovements : MonoBehaviour
     public Transform camRotate;
     public float gravity = -9.81f;
 
+    void Start()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
 
     public void Move(InputAction.CallbackContext context)
     {
@@ -36,6 +42,5 @@ public class PlayerMovements : MonoBehaviour
         camRotate.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
         transform.Rotate(Vector3.up * camRot.x);
-
     }
 }
