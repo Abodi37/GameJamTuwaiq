@@ -29,7 +29,7 @@ public class RoomManager : MonoBehaviour
         CharacterController cc = player.GetComponent<CharacterController>();
 
         cc.enabled = false;
-        player.position = roomSpawnPoints[currentRoom].position;
+        player.position = roomSpawnPoints[currentRoom].position + Vector3.up * 0.3f;
         cc.enabled = true;
 
         EnemyAI[] enemies = FindObjectsOfType<EnemyAI>();
