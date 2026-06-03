@@ -16886,8 +16886,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovements
   myController: {fileID: 1844060794}
   speed: 5
-  mouseSen: 100
+  mouseSen: 50
   camRotate: {fileID: 416079788}
+  gravity: -9.81
 --- !u!136 &1844060796
 CapsuleCollider:
   m_ObjectHideFlags: 0

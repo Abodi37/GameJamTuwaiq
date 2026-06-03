@@ -20,7 +20,7 @@ public class PlayerMovements : MonoBehaviour
 
     public void CameraRotation(InputAction.CallbackContext context)
     {
-        camRot = context.ReadValue<Vector2>() * mouseSen * Time.deltaTime;
+        camRot = context.ReadValue<Vector2>() * mouseSen;
     }
 
 
