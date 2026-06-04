@@ -2,11 +2,14 @@ using UnityEngine;
 
 public class PlayerStats : MonoBehaviour
 {
-    [Header("Shift Health")]
-    public int maxHealth = 10;
+    [Header("Health Based On Shifts")]
+    public int maxHealth = 100;
     public int currentHealth;
+
+    [Header("Shifts")]
     public int maxShifts = 10;
     public int shiftsUsed = 0;
+    public int healthLostPerShift = 10;
 
     [Header("Death")]
     public GameObject deathPanel;
@@ -29,7 +32,9 @@ public class PlayerStats : MonoBehaviour
         if (isDead) return false;
 
         shiftsUsed++;
-        currentHealth = Mathf.Clamp(maxHealth - shiftsUsed, 0, maxHealth);
+
+        currentHealth = maxHealth - (shiftsUsed * healthLostPerShift);
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
         UpdateUI();
 
@@ -73,6 +78,8 @@ public class PlayerStats : MonoBehaviour
         if (isDead) return;
 
         isDead = true;
+        currentHealth = 0;
+        UpdateUI();
 
         if (playerMovement != null)
             playerMovement.enabled = false;
