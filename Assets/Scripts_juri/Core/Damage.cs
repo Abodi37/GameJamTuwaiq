@@ -1,4 +1,4 @@
-using UnityEngine;
+/*using UnityEngine;
 
 public class Damage : MonoBehaviour
 {
@@ -23,4 +23,4 @@ public class Damage : MonoBehaviour
             }
         }
     }
-}
+*/
