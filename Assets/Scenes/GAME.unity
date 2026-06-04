@@ -12467,6 +12467,51 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4887749307434110, guid: a25ba8cacea6a1440a5f8c38ba04c26d, type: 3}
   m_PrefabInstance: {fileID: 186754971}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &188835470 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5603016368265838659, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
+  m_PrefabInstance: {fileID: 1447672628}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &188835471 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9039862931049667463, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
+  m_PrefabInstance: {fileID: 1447672628}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &188835474
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 188835470}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eefe07dec09e2664fa9aa7d90fa8900d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  interactionMode: 2
+  promptMessage: Press E to use dial
+  oneTimeUse: 0
+  dialogueLines: []
+  onInteract:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1366473301}
+        m_TargetAssemblyTypeName: SafeDialPuzzle, Assembly-CSharp
+        m_MethodName: OpenDial
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  dropForwardForce: 1.5
+  renderers: []
+  highlightColor: {r: 1, g: 1, b: 1, a: 1}
+  highlightPower: 2
 --- !u!1001 &189486314
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -33733,6 +33778,7 @@ Transform:
   - {fileID: 586794776}
   - {fileID: 985197596}
   - {fileID: 879994073}
+  - {fileID: 1366473300}
   m_Father: {fileID: 216524369}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &461424736
@@ -101615,6 +101661,88 @@ Transform:
   - {fileID: 1933382564}
   m_Father: {fileID: 154787238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1366473299 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
+  m_PrefabInstance: {fileID: 1447672628}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1366473300 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
+  m_PrefabInstance: {fileID: 1447672628}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1366473301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1366473299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 583b08e2f4fdf0e438a6841e7a54304f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SafeDialPuzzle
+  correctCode: 040000000800000006000000
+  dialTransform: {fileID: 188835471}
+  rotateSpeed: 120
+  currentNumber: 0
+  maxNumber: 9
+  dialPanel: {fileID: 0}
+  displayText: {fileID: 0}
+  solvedFlag: puzzle1Solved
+  onCorrectCode:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  onWrongCode:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!95 &1366473302
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1366473299}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1001 &1366990833
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -109217,7 +109345,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 461303716}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
       propertyPath: m_LocalScale.x
@@ -109233,15 +109361,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 26.614
+      value: -2.4667788
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.255
+      value: 0.6190002
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -29.807
+      value: -4.7049994
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
       propertyPath: m_LocalRotation.w
@@ -109249,15 +109377,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -109306,7 +109434,16 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1366473301}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1366473302}
+    - targetCorrespondingSourceObject: {fileID: 5603016368265838659, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 188835474}
   m_SourcePrefab: {fileID: 100100000, guid: e53c955e5d5776d4a9d07f7e459c1816, type: 3}
 --- !u!1 &1450177174
 GameObject:
@@ -164355,7 +164492,6 @@ SceneRoots:
   - {fileID: 1844060799}
   - {fileID: 195450134}
   - {fileID: 1192115772}
-  - {fileID: 1447672628}
   - {fileID: 477283452}
   - {fileID: 1650174428}
   - {fileID: 1283269822}
