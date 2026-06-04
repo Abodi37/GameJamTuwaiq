@@ -7,10 +7,17 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
-    [Header("Main UI")]
+    [Header("Main UI Text")]
     public TMP_Text healthText;
     public TMP_Text shiftText;
     public TMP_Text roomText;
+    public TMP_Text inventoryText;
+
+    [Header("Main UI Images Optional")]
+    public Image healthFillImage;
+    public Image shiftsFillImage;
+    public Image cookieIcon;
+    public Image keyIcon;
 
     [Header("Objective UI")]
     public GameObject objectivePanel;
@@ -59,6 +66,9 @@ public class UIManager : MonoBehaviour
             pausePanel.SetActive(false);
 
         ShowInteract("");
+        SetCookieIcon(false);
+        SetKeyIcon(false);
+        SetInventoryText("Inventory: Empty");
 
         if (damageFlashImage != null)
         {
@@ -72,12 +82,32 @@ public class UIManager : MonoBehaviour
     {
         if (healthText != null)
             healthText.text = "Health: " + currentHealth + " / " + maxHealth;
+
+        if (healthFillImage != null)
+        {
+            float value = 0f;
+
+            if (maxHealth > 0)
+                value = (float)currentHealth / maxHealth;
+
+            healthFillImage.fillAmount = Mathf.Clamp01(value);
+        }
     }
 
     public void SetShifts(int shiftsLeft, int maxShifts)
     {
         if (shiftText != null)
             shiftText.text = "Shifts Left: " + shiftsLeft + " / " + maxShifts;
+
+        if (shiftsFillImage != null)
+        {
+            float value = 0f;
+
+            if (maxShifts > 0)
+                value = (float)shiftsLeft / maxShifts;
+
+            shiftsFillImage.fillAmount = Mathf.Clamp01(value);
+        }
     }
 
     public void SetRoom(string roomName)
@@ -106,7 +136,6 @@ public class UIManager : MonoBehaviour
         if (interactText == null) return;
 
         bool hasMessage = !string.IsNullOrEmpty(message);
-
         interactText.gameObject.SetActive(hasMessage);
         interactText.text = message;
     }
@@ -124,6 +153,24 @@ public class UIManager : MonoBehaviour
     {
         if (dialoguePanel != null)
             dialoguePanel.SetActive(false);
+    }
+
+    public void SetInventoryText(string text)
+    {
+        if (inventoryText != null)
+            inventoryText.text = text;
+    }
+
+    public void SetCookieIcon(bool value)
+    {
+        if (cookieIcon != null)
+            cookieIcon.gameObject.SetActive(value);
+    }
+
+    public void SetKeyIcon(bool value)
+    {
+        if (keyIcon != null)
+            keyIcon.gameObject.SetActive(value);
     }
 
     public void ShowDeath()
@@ -167,7 +214,6 @@ public class UIManager : MonoBehaviour
             timer += Time.deltaTime;
             c.a = Mathf.Lerp(0.5f, 0f, timer / flashDuration);
             damageFlashImage.color = c;
-
             yield return null;
         }
 

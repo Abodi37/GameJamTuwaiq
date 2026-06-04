@@ -3,27 +3,42 @@ using UnityEngine.InputSystem;
 
 public class PlayerTeleport : MonoBehaviour
 {
-    public int teleportCost = 10;
+    public AudioSource shiftSound;
+    public GameObject shiftEffect;
 
-    private PlayerStats health;
+    private PlayerStats playerStats;
 
-    private void Awake()
+    void Awake()
     {
-        health = GetComponent<PlayerStats>();
+        playerStats = GetComponent<PlayerStats>();
     }
 
     public void OnTeleport(InputAction.CallbackContext context)
     {
-        Debug.Log("Shifted");
+        if (!context.performed) return;
+        if (Time.timeScale == 0f) return;
 
-        if (!context.performed)
+        if (DialogueSystem.Instance != null && DialogueSystem.Instance.IsPlaying)
             return;
 
-        if (health.currentHealth <= teleportCost)
+        if (playerStats == null)
+            playerStats = GetComponent<PlayerStats>();
+
+        if (playerStats == null || playerStats.IsDead())
             return;
 
-        health.TakeDamage(teleportCost);
+        bool canShift = playerStats.UseShift();
 
-        RoomManager.Instance.SwitchRoom(transform);
+        if (!canShift)
+            return;
+
+        if (shiftSound != null)
+            shiftSound.Play();
+
+        if (shiftEffect != null)
+            Instantiate(shiftEffect, transform.position, Quaternion.identity);
+
+        if (RoomManager.Instance != null)
+            RoomManager.Instance.SwitchRoom(transform);
     }
 }

@@ -29,9 +29,7 @@ public class DialogueSystem : MonoBehaviour
         if (!isPlaying) return;
 
         if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-        {
             NextLine();
-        }
     }
 
     public void StartDialogue(string[] lines)

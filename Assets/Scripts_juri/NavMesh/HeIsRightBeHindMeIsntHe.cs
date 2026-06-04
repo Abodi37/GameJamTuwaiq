@@ -89,7 +89,6 @@ public class HeIsBehindMeIsntHe : MonoBehaviour
         if (agent == null || player == null) return;
 
         Vector3 pos = player.position - player.forward * 2f;
-
         agent.Warp(pos);
         agent.ResetPath();
     }

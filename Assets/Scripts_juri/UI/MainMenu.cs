@@ -8,16 +8,14 @@ public class MainMenu : MonoBehaviour
 
     [Header("Panels Optional")]
     public GameObject mainPanel;
-    public GameObject pausePanel;
-  
+    public GameObject settingsPanel;
+    public GameObject creditsPanel;
 
     void Start()
     {
         Time.timeScale = 1f;
-
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
         ShowMainPanel();
     }
 
@@ -35,33 +33,22 @@ public class MainMenu : MonoBehaviour
 
     public void ShowMainPanel()
     {
-        if (mainPanel != null)
-            mainPanel.SetActive(true);
-
-        if (pausePanel != null)
-            pausePanel.SetActive(false);
-
-        
+        if (mainPanel != null) mainPanel.SetActive(true);
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (creditsPanel != null) creditsPanel.SetActive(false);
     }
 
     public void ShowSettingsPanel()
     {
-        if (mainPanel != null)
-            mainPanel.SetActive(false);
-
-        if (pausePanel != null)
-            pausePanel.SetActive(true);
-
-  
+        if (mainPanel != null) mainPanel.SetActive(false);
+        if (settingsPanel != null) settingsPanel.SetActive(true);
+        if (creditsPanel != null) creditsPanel.SetActive(false);
     }
 
     public void ShowCreditsPanel()
     {
-        if (mainPanel != null)
-            mainPanel.SetActive(false);
-
-        if (pausePanel != null)
-            pausePanel.SetActive(false);
-
+        if (mainPanel != null) mainPanel.SetActive(false);
+        if (settingsPanel != null) settingsPanel.SetActive(false);
+        if (creditsPanel != null) creditsPanel.SetActive(true);
     }
 }
