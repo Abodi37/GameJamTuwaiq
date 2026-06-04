@@ -10,7 +10,7 @@ public class RoomManager : MonoBehaviour
     public int currentRoom = 0;
 
     [Header("Optional Companion")]
-    public HeIsBehindMeIsntHe companion;
+    public HeIsRightBehindMeIsntHe companion;
 
     private int[] roomVisitCounts;
 

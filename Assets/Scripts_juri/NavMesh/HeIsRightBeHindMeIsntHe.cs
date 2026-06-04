@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class HeIsBehindMeIsntHe : MonoBehaviour
+public class HeIsRightBehindMeIsntHe : MonoBehaviour
 {
     [Header("References")]
     public NavMeshAgent agent;
@@ -22,6 +22,9 @@ public class HeIsBehindMeIsntHe : MonoBehaviour
     public string isWalkingParam = "isWalking";
     public string isRunningParam = "isRunning";
 
+    [Header("Debug")]
+    public bool showDebug = true;
+
     private float timer;
 
     void Start()
@@ -30,12 +33,25 @@ public class HeIsBehindMeIsntHe : MonoBehaviour
             agent = GetComponent<NavMeshAgent>();
 
         if (animator == null)
-            animator = GetComponent<Animator>();
+            animator = GetComponentInChildren<Animator>();
 
         if (agent != null)
         {
             agent.speed = walkSpeed;
             agent.stoppingDistance = stopDistance;
+            agent.isStopped = false;
+        }
+
+        if (showDebug)
+        {
+            if (agent == null)
+                Debug.LogError("No NavMeshAgent found on companion.");
+
+            if (animator == null)
+                Debug.LogError("No Animator found on companion or children.");
+
+            if (player == null)
+                Debug.LogError("Player is not assigned.");
         }
     }
 
@@ -60,6 +76,7 @@ public class HeIsBehindMeIsntHe : MonoBehaviour
 
         if (distance > followDistance)
         {
+            agent.isStopped = false;
             agent.SetDestination(player.position);
 
             if (distance >= runDistance)
@@ -70,6 +87,7 @@ public class HeIsBehindMeIsntHe : MonoBehaviour
         else
         {
             agent.ResetPath();
+            agent.isStopped = true;
         }
     }
 
@@ -77,11 +95,21 @@ public class HeIsBehindMeIsntHe : MonoBehaviour
     {
         if (animator == null) return;
 
-        bool isMoving = agent.velocity.magnitude > 0.1f;
+        float velocity = agent.velocity.magnitude;
+        float desiredVelocity = agent.desiredVelocity.magnitude;
+
+        bool isMoving = velocity > 0.05f || desiredVelocity > 0.05f;
         bool isRunning = isMoving && agent.speed >= runSpeed - 0.1f;
 
         animator.SetBool(isWalkingParam, isMoving && !isRunning);
         animator.SetBool(isRunningParam, isRunning);
+
+        if (showDebug)
+        {
+            Debug.Log("Companion Moving: " + isMoving + 
+                      " | Running: " + isRunning + 
+                      " | Velocity: " + velocity);
+        }
     }
 
     public void WarpToPlayer()
@@ -89,7 +117,11 @@ public class HeIsBehindMeIsntHe : MonoBehaviour
         if (agent == null || player == null) return;
 
         Vector3 pos = player.position - player.forward * 2f;
-        agent.Warp(pos);
-        agent.ResetPath();
+
+        if (agent.isOnNavMesh)
+        {
+            agent.Warp(pos);
+            agent.ResetPath();
+        }
     }
 }

@@ -11,6 +11,10 @@ public class InteractableObject : MonoBehaviour
         PickupAndDialogue
     }
 
+[Header("Highlight")]
+public bool enableHighlight = true;
+
+
     [Header("Interaction")]
     public InteractionMode interactionMode = InteractionMode.Pickup;
     public string promptMessage = "Press E";
@@ -167,27 +171,36 @@ public class InteractableObject : MonoBehaviour
     }
 
     public void SetHighlighted(bool value)
+{
+    if (!enableHighlight)
+        value = false;
+
+    if (materials == null) return;
+    if (isHeld) value = false;
+
+    for (int i = 0; i < materials.Length; i++)
     {
-        if (materials == null) return;
-        if (isHeld) value = false;
+        if (materials[i] == null) continue;
+        if (!materials[i].HasProperty("_EmissionColor")) continue;
 
-        for (int i = 0; i < materials.Length; i++)
+        if (value)
         {
-            if (materials[i] == null) continue;
-            if (!materials[i].HasProperty("_EmissionColor")) continue;
+            materials[i].EnableKeyword("_EMISSION");
+            materials[i].SetColor(
+                "_EmissionColor",
+                highlightColor * highlightPower
+            );
+        }
+        else
+        {
+            materials[i].SetColor(
+                "_EmissionColor",
+                originalEmissionColors[i]
+            );
 
-            if (value)
-            {
-                materials[i].EnableKeyword("_EMISSION");
-                materials[i].SetColor("_EmissionColor", highlightColor * highlightPower);
-            }
-            else
-            {
-                materials[i].SetColor("_EmissionColor", originalEmissionColors[i]);
-
-                if (!hadEmissionKeyword[i])
-                    materials[i].DisableKeyword("_EMISSION");
-            }
+            if (!hadEmissionKeyword[i])
+                materials[i].DisableKeyword("_EMISSION");
         }
     }
+}
 }
