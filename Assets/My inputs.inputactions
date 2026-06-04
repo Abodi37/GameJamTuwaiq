@@ -159,8 +159,8 @@
                 {
                     "name": "",
                     "id": "710ef839-e88c-4372-964e-619bee2acfa9",
-                    "path": "",
-                    "interactions": "",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "Press",
                     "processors": "",
                     "groups": "",
                     "action": "Shift",
