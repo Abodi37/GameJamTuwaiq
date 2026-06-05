@@ -5,6 +5,7 @@ public class PlayerMovements : MonoBehaviour
 {
     Vector2 movement;
     Vector2 camRot;
+    Vector3 velocity;
     public CharacterController myController;
     public float speed = 5f;
     float xRotation = 0f;
@@ -35,6 +36,15 @@ public class PlayerMovements : MonoBehaviour
     {
         Vector3 move = movement.x * transform.right + movement.y * transform.forward;
         myController.Move(move * speed * Time.deltaTime);
+
+        // Gravity
+        if (myController.isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f; // Small negative value to keep grounded
+        }
+
+        velocity.y += gravity * Time.deltaTime;
+        myController.Move(velocity * Time.deltaTime);
 
         xRotation -= camRot.y;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
