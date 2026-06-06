@@ -32,10 +32,21 @@ public class PlayerInteraction : MonoBehaviour
 
     void Update()
     {
-        if (Time.timeScale == 0f) return;
+        if (Time.timeScale == 0f)
+        {
+            if (UIManager.Instance != null)
+                UIManager.Instance.ShowInteract("");
+
+            return;
+        }
 
         if (DialogueSystem.Instance != null && DialogueSystem.Instance.IsPlaying)
+        {
+            if (UIManager.Instance != null)
+                UIManager.Instance.ShowInteract("");
+
             return;
+        }
 
         if (heldObject == null)
             CheckForInteractable();
@@ -43,20 +54,22 @@ public class PlayerInteraction : MonoBehaviour
 
     public void OnInteract(InputAction.CallbackContext context)
     {
-        if (!context.performed) return;
-        if (Time.timeScale == 0f) return;
+        if (!context.performed)
+            return;
+
+        if (Time.timeScale == 0f)
+            return;
 
         if (DialogueSystem.Instance != null && DialogueSystem.Instance.IsPlaying)
             return;
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.ShowInteract("");
 
         if (heldObject != null)
         {
             heldObject.Drop();
             heldObject = null;
-
-            if (UIManager.Instance != null)
-                UIManager.Instance.ShowInteract("");
-
             return;
         }
 
@@ -66,7 +79,8 @@ public class PlayerInteraction : MonoBehaviour
 
     void CheckForInteractable()
     {
-        if (playerCamera == null) return;
+        if (playerCamera == null)
+            return;
 
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         RaycastHit hit;
@@ -87,7 +101,13 @@ public class PlayerInteraction : MonoBehaviour
 
     void SetCurrentTarget(InteractableObject target)
     {
-        if (currentTarget == target) return;
+        if (currentTarget == target)
+        {
+            if (UIManager.Instance != null)
+                UIManager.Instance.ShowInteract(currentTarget.GetPrompt());
+
+            return;
+        }
 
         ClearCurrentTarget();
 
@@ -123,5 +143,8 @@ public class PlayerInteraction : MonoBehaviour
             currentTarget.SetHighlighted(false);
             currentTarget = null;
         }
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.ShowInteract("");
     }
 }

@@ -22,9 +22,6 @@ public class HeIsRightBehindMeIsntHe : MonoBehaviour
     public string isWalkingParam = "isWalking";
     public string isRunningParam = "isRunning";
 
-    [Header("Debug")]
-    public bool showDebug = true;
-
     private float timer;
 
     void Start()
@@ -41,23 +38,12 @@ public class HeIsRightBehindMeIsntHe : MonoBehaviour
             agent.stoppingDistance = stopDistance;
             agent.isStopped = false;
         }
-
-        if (showDebug)
-        {
-            if (agent == null)
-                Debug.LogError("No NavMeshAgent found on companion.");
-
-            if (animator == null)
-                Debug.LogError("No Animator found on companion or children.");
-
-            if (player == null)
-                Debug.LogError("Player is not assigned.");
-        }
     }
 
     void Update()
     {
-        if (player == null || agent == null) return;
+        if (player == null || agent == null)
+            return;
 
         timer += Time.deltaTime;
 
@@ -93,7 +79,8 @@ public class HeIsRightBehindMeIsntHe : MonoBehaviour
 
     void UpdateAnimation()
     {
-        if (animator == null) return;
+        if (animator == null || agent == null)
+            return;
 
         float velocity = agent.velocity.magnitude;
         float desiredVelocity = agent.desiredVelocity.magnitude;
@@ -103,18 +90,12 @@ public class HeIsRightBehindMeIsntHe : MonoBehaviour
 
         animator.SetBool(isWalkingParam, isMoving && !isRunning);
         animator.SetBool(isRunningParam, isRunning);
-
-        if (showDebug)
-        {
-            Debug.Log("Companion Moving: " + isMoving + 
-                      " | Running: " + isRunning + 
-                      " | Velocity: " + velocity);
-        }
     }
 
     public void WarpToPlayer()
     {
-        if (agent == null || player == null) return;
+        if (agent == null || player == null)
+            return;
 
         Vector3 pos = player.position - player.forward * 2f;
 

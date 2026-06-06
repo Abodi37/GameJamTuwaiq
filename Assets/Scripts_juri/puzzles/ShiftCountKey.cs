@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Events;
 
 public class ShiftCountKey : MonoBehaviour
 {
@@ -8,79 +7,115 @@ public class ShiftCountKey : MonoBehaviour
     public Collider keyCollider;
 
     [Header("Requirement")]
-    public string requiredFlag = "puzzle2Solved";
-    public int requiredRoomIndex = 1;
-    public int requiredShiftsLeft = 6;
+    public string requiredFlag = "puzzle1Solved";
+
+    [Tooltip("Use -1 to ignore room check.")]
+    public int requiredRoomIndex = -1;
+
+    [Tooltip("Use -1 to ignore shift check.")]
+    public int requiredShiftsLeft = -1;
 
     [Header("Pickup")]
     public string keyFlag = "exitKeyCollected";
-    public string inventoryName = "Exit Key";
-    public UnityEvent onPickedUp;
+    public string itemName = "Key";
+    public bool destroyAfterPickup = true;
+
+    [Header("Pickup Dialogue")]
+    public bool showPickupDialogue = true;
+    [TextArea]
+    public string pickupLine = "In my pocket you go!";
 
     private bool pickedUp;
 
     void Start()
     {
-        SetVisible(false);
+        UpdateVisibility();
     }
 
     void Update()
     {
-        if (pickedUp) return;
-
-        bool canShow = CanShowKey();
-        SetVisible(canShow);
+        UpdateVisibility();
     }
 
-    bool CanShowKey()
+    void UpdateVisibility()
     {
-        if (GameManager.Instance == null) return false;
-        if (!GameManager.Instance.HasFlag(requiredFlag)) return false;
-        if (GameManager.Instance.currentRoomIndex != requiredRoomIndex) return false;
-        if (GameManager.Instance.currentShiftsLeft != requiredShiftsLeft) return false;
-
-        return true;
-    }
-
-    public void PickUpKey()
-    {
-        if (pickedUp) return;
-
-        if (!CanShowKey())
+        if (pickedUp)
         {
-            if (DialogueSystem.Instance != null)
-            {
-                DialogueSystem.Instance.StartDialogue(new string[]
-                {
-                    "Nothing is here yet.",
-                    "The key only trusts the correct number of shifts."
-                });
-            }
-
+            SetKeyVisible(false);
             return;
         }
 
-        pickedUp = true;
-
-        if (GameManager.Instance != null)
+        if (GameManager.Instance == null)
         {
-            GameManager.Instance.SetFlag(keyFlag, true);
-            GameManager.Instance.AddItem(inventoryName);
+            SetKeyVisible(false);
+            return;
         }
 
-        if (UIManager.Instance != null)
-            UIManager.Instance.SetObjective("Reach the Angel Hallway and open the exit door.");
+        bool hasRequiredFlag = true;
 
-        onPickedUp.Invoke();
-        SetVisible(false);
+        if (!string.IsNullOrWhiteSpace(requiredFlag))
+            hasRequiredFlag = GameManager.Instance.HasFlag(requiredFlag);
+
+        bool roomOk = true;
+
+        if (requiredRoomIndex >= 0)
+            roomOk = GameManager.Instance.currentRoomIndex == requiredRoomIndex;
+
+        bool shiftOk = true;
+
+        if (requiredShiftsLeft >= 0)
+            shiftOk = GameManager.Instance.currentShiftsLeft == requiredShiftsLeft;
+
+        bool shouldShow = hasRequiredFlag && roomOk && shiftOk;
+
+        SetKeyVisible(shouldShow);
     }
 
-    void SetVisible(bool value)
+    void SetKeyVisible(bool value)
     {
         if (keyVisual != null)
             keyVisual.SetActive(value);
 
         if (keyCollider != null)
             keyCollider.enabled = value;
+    }
+
+    public void PickUpKey()
+    {
+        if (pickedUp)
+            return;
+
+        pickedUp = true;
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetFlag(keyFlag, true);
+            GameManager.Instance.AddItem(itemName);
+        }
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.SetKeyIcon(true);
+            UIManager.Instance.SetInventoryText("Inventory: Key");
+            UIManager.Instance.ShowInteract("");
+        }
+
+        if (showPickupDialogue && DialogueSystem.Instance != null)
+        {
+            DialogueSystem.Instance.StartDialogue(new string[]
+            {
+                pickupLine
+            });
+        }
+
+        SetKeyVisible(false);
+
+        InteractableObject interactable = GetComponent<InteractableObject>();
+
+        if (interactable != null)
+            interactable.enabled = false;
+
+        if (destroyAfterPickup)
+            Destroy(gameObject, 0.1f);
     }
 }

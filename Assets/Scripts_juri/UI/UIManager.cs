@@ -32,6 +32,9 @@ public class UIManager : MonoBehaviour
     public GameObject dialogueContinueIcon;
 
     [Header("Panels")]
+    public GameObject cookiePanel;
+    public GameObject safePuzzlePanel;
+    public GameObject colorPuzzlePanel;
     public GameObject deathPanel;
     public GameObject pausePanel;
 
@@ -58,6 +61,12 @@ public class UIManager : MonoBehaviour
             objectivePanel.SetActive(true);
 
         HideDialogue();
+
+        if (safePuzzlePanel != null)
+            safePuzzlePanel.SetActive(false);
+
+        if (colorPuzzlePanel != null)
+            colorPuzzlePanel.SetActive(false);
 
         if (deathPanel != null)
             deathPanel.SetActive(false);
@@ -144,6 +153,8 @@ public class UIManager : MonoBehaviour
 
     public void ShowDialogueLine(string line)
     {
+        CloseAllPanelsExcept(dialoguePanel);
+
         if (dialoguePanel != null)
             dialoguePanel.SetActive(true);
 
@@ -171,6 +182,48 @@ public class UIManager : MonoBehaviour
         return dialoguePanel != null && dialoguePanel.activeSelf;
     }
 
+    public void CloseAllPanels()
+    {
+        if (dialoguePanel != null)
+            dialoguePanel.SetActive(false);
+
+        if (cookiePanel != null)
+            cookiePanel.SetActive(false);
+
+        if (safePuzzlePanel != null)
+            safePuzzlePanel.SetActive(false);
+
+        if (colorPuzzlePanel != null)
+            colorPuzzlePanel.SetActive(false);
+
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
+
+        if (deathPanel != null)
+            deathPanel.SetActive(false);
+    }
+
+    public void CloseAllPanelsExcept(GameObject panelToKeepOpen)
+    {
+        if (dialoguePanel != null && dialoguePanel != panelToKeepOpen)
+            dialoguePanel.SetActive(false);
+
+        if (cookiePanel != null && cookiePanel != panelToKeepOpen)
+            cookiePanel.SetActive(false);
+
+        if (safePuzzlePanel != null && safePuzzlePanel != panelToKeepOpen)
+            safePuzzlePanel.SetActive(false);
+
+        if (colorPuzzlePanel != null && colorPuzzlePanel != panelToKeepOpen)
+            colorPuzzlePanel.SetActive(false);
+
+        if (pausePanel != null && pausePanel != panelToKeepOpen)
+            pausePanel.SetActive(false);
+
+        if (deathPanel != null && deathPanel != panelToKeepOpen)
+            deathPanel.SetActive(false);
+    }
+
     public void SetInventoryText(string text)
     {
         if (inventoryText != null)
@@ -191,10 +244,7 @@ public class UIManager : MonoBehaviour
 
     public void ShowDeath()
     {
-        HideDialogue();
-
-        if (pausePanel != null)
-            pausePanel.SetActive(false);
+        CloseAllPanelsExcept(deathPanel);
 
         if (deathPanel != null)
             deathPanel.SetActive(true);
@@ -207,6 +257,11 @@ public class UIManager : MonoBehaviour
 
     public void SetPausePanel(bool isPaused)
     {
+        if (isPaused)
+        {
+            CloseAllPanelsExcept(pausePanel);
+        }
+
         if (pausePanel != null)
             pausePanel.SetActive(isPaused);
 

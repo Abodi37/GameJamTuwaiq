@@ -9,7 +9,10 @@ public class DialogueSystem : MonoBehaviour
     private int currentIndex;
     private bool isPlaying;
 
-    public bool IsPlaying => isPlaying;
+    public bool IsPlaying
+    {
+        get { return isPlaying; }
+    }
 
     void Awake()
     {
@@ -22,28 +25,61 @@ public class DialogueSystem : MonoBehaviour
         Instance = this;
     }
 
-    public void OnContinue(InputAction.CallbackContext context)
+    void Start()
     {
-        if (!context.performed) return;
-        if (!isPlaying) return;
+        EndDialogue();
+    }
 
-        NextLine();
+    void Update()
+    {
+        if (!isPlaying)
+            return;
+
+        bool spacePressed =
+            Keyboard.current != null &&
+            Keyboard.current.spaceKey.wasPressedThisFrame;
+
+        bool mousePressed =
+            Mouse.current != null &&
+            Mouse.current.leftButton.wasPressedThisFrame;
+
+        if (spacePressed || mousePressed)
+            NextLine();
     }
 
     public void StartDialogue(string[] lines)
     {
-        if (lines == null || lines.Length == 0) return;
+        if (lines == null || lines.Length == 0)
+            return;
 
         currentLines = lines;
         currentIndex = 0;
         isPlaying = true;
 
         if (UIManager.Instance != null)
+        {
+            UIManager.Instance.CloseAllPanelsExcept(UIManager.Instance.dialoguePanel);
+            UIManager.Instance.ShowInteract("");
             UIManager.Instance.ShowDialogueLine(currentLines[currentIndex]);
+        }
     }
 
-    void NextLine()
+    public void OnContinue(InputAction.CallbackContext context)
     {
+        if (!context.performed)
+            return;
+
+        if (!isPlaying)
+            return;
+
+        NextLine();
+    }
+
+    public void NextLine()
+    {
+        if (!isPlaying)
+            return;
+
         currentIndex++;
 
         if (currentIndex >= currentLines.Length)
@@ -59,6 +95,8 @@ public class DialogueSystem : MonoBehaviour
     public void EndDialogue()
     {
         isPlaying = false;
+        currentLines = null;
+        currentIndex = 0;
 
         if (UIManager.Instance != null)
             UIManager.Instance.HideDialogue();

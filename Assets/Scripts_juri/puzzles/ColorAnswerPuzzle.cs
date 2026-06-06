@@ -12,7 +12,7 @@ public class ColorAnswerPuzzle : MonoBehaviour
     public TMP_Text feedbackText;
 
     [TextArea]
-    public string question = "What was the color on the second visit?";
+    public string question = "What was the color of the smallest bowl on the second visit?";
 
     [Header("Answer")]
     public ColorMemoryObject memoryObject;
@@ -53,6 +53,8 @@ public class ColorAnswerPuzzle : MonoBehaviour
         if (questionPanel != null)
             questionPanel.SetActive(false);
 
+        ForceHideDialogue();
+
         UpdateQuestionText();
         UpdateFeedbackText("");
     }
@@ -62,18 +64,14 @@ public class ColorAnswerPuzzle : MonoBehaviour
         if (solved)
             return;
 
+        ForceHideDialogue();
+
         if (requirePreviousPuzzleSolved)
         {
             if (GameManager.Instance != null && !GameManager.Instance.HasFlag(requiredFlag))
             {
-                if (DialogueSystem.Instance != null)
-                {
-                    DialogueSystem.Instance.StartDialogue(new string[]
-                    {
-                        "The device is asleep.",
-                        "Maybe something in the garage explains what it wants."
-                    });
-                }
+                if (UIManager.Instance != null)
+                    UIManager.Instance.HideDialogue();
 
                 return;
             }
@@ -102,15 +100,19 @@ public class ColorAnswerPuzzle : MonoBehaviour
         }
 
         UpdateQuestionText();
-        UpdateFeedbackText("اكتبي الإجابة ثم اضغطي Submit أو Enter.");
+        UpdateFeedbackText("Write the answer, then press Submit or Space.");
 
-        Debug.Log("ColorAnswerPuzzle: Opened. Correct answer is: " + GetCorrectAnswer());
+        Debug.Log("ColorAnswerPuzzle: Opened.");
+        Debug.Log("ColorAnswerPuzzle: Correct answer is [" + GetCorrectAnswer() + "]");
     }
 
     public void CloseQuestion()
     {
         if (!isOpen)
+        {
+            ForceHideDialogue();
             return;
+        }
 
         isOpen = false;
 
@@ -122,6 +124,10 @@ public class ColorAnswerPuzzle : MonoBehaviour
         Cursor.visible = oldCursorVisible;
 
         SetDisabledScripts(true);
+
+        ForceHideDialogue();
+
+        Debug.Log("ColorAnswerPuzzle: Closed.");
     }
 
     public void SubmitFromInput()
@@ -140,11 +146,14 @@ public class ColorAnswerPuzzle : MonoBehaviour
         if (!isOpen)
         {
             Debug.LogWarning("ColorAnswerPuzzle: Submit ignored because puzzle is not open.");
+            ForceHideDialogue();
             return;
         }
 
         if (solved)
             return;
+
+        ForceHideDialogue();
 
         string playerAnswer = NormalizeAnswer(answer);
         string correctAnswer = NormalizeAnswer(GetCorrectAnswer());
@@ -154,7 +163,7 @@ public class ColorAnswerPuzzle : MonoBehaviour
 
         if (string.IsNullOrEmpty(playerAnswer))
         {
-            UpdateFeedbackText("اكتبي إجابة أول.");
+            UpdateFeedbackText("Write an answer first.");
             FocusInput();
             return;
         }
@@ -167,12 +176,18 @@ public class ColorAnswerPuzzle : MonoBehaviour
                 GameManager.Instance.SetFlag(solvedFlag, true);
 
             if (UIManager.Instance != null)
+            {
                 UIManager.Instance.SetObjective("A key will appear only when the shift count is correct.");
+                UIManager.Instance.HideDialogue();
+            }
 
             UpdateFeedbackText("Correct.");
+
             onSolved.Invoke();
 
             CloseQuestion();
+
+            Debug.Log("ColorAnswerPuzzle: Solved. Flag set = " + solvedFlag);
             return;
         }
 
@@ -183,7 +198,8 @@ public class ColorAnswerPuzzle : MonoBehaviour
 
         if (attemptsLeft <= 0)
         {
-            UpdateFeedbackText("غلط. خلصت المحاولات.");
+            UpdateFeedbackText("Wrong. No attempts left.");
+
             onFailedAllAttempts.Invoke();
 
             CloseQuestion();
@@ -192,7 +208,7 @@ public class ColorAnswerPuzzle : MonoBehaviour
         }
 
         UpdateQuestionText();
-        UpdateFeedbackText("غلط. باقي محاولات: " + attemptsLeft);
+        UpdateFeedbackText("Wrong. Attempts left: " + attemptsLeft);
 
         if (answerInput != null)
             answerInput.text = "";
@@ -215,6 +231,8 @@ public class ColorAnswerPuzzle : MonoBehaviour
 
         if (isOpen)
             CloseQuestion();
+        else
+            ForceHideDialogue();
     }
 
     string GetCorrectAnswer()
@@ -334,5 +352,11 @@ public class ColorAnswerPuzzle : MonoBehaviour
             if (disableWhileOpen[i] != null)
                 disableWhileOpen[i].enabled = value;
         }
+    }
+
+    void ForceHideDialogue()
+    {
+        if (UIManager.Instance != null)
+            UIManager.Instance.HideDialogue();
     }
 }

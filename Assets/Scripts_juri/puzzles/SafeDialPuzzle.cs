@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Events;
@@ -8,23 +7,16 @@ using UnityEngine.InputSystem;
 public class SafeDialPuzzle : MonoBehaviour
 {
     [Header("Code")]
-    public int[] correctCode = { 4, 8, 6 };
+    public string correctCode = "486";
 
-    [Header("Cinemachine Cameras")]
+    [Header("Cinemachine Cameras Optional")]
     public GameObject playerVirtualCamera;
     public GameObject safeVirtualCamera;
 
-    [Tooltip("حطي هنا PlayerMovements أو سكربت النظر فقط. لا تحطين PlayerInput.")]
-    public Behaviour[] disableWhileUsing;
-
-    [Header("Dial")]
-    public Transform dialTransform;
-    public Vector3 dialRotationAxis = Vector3.forward;
-    public bool invertDirection = false;
-    public float visualRotateSpeed = 140f;
-    public float numberStepDelay = 0.15f;
-    public int currentNumber = 0;
-    public int maxNumber = 9;
+    [Header("UI")]
+    public GameObject safePuzzlePanel;
+    public TMP_InputField codeInput;
+    public TMP_Text feedbackText;
 
     [Header("Safe Door")]
     public Transform safeDoor;
@@ -36,13 +28,8 @@ public class SafeDialPuzzle : MonoBehaviour
     public GameObject objectToShowAfterSolved;
     public GameObject objectToHideAfterSolved;
 
-    [Header("UI Optional")]
-    public GameObject dialPanel;
-    public TMP_Text displayText;
-
-    [Header("Settings")]
-    public bool freezeTimeWhileUsing = false;
-    public bool closeViewAfterSolved = true;
+    [Header("Player")]
+    public Behaviour[] disableWhileOpen;
 
     [Header("Flags")]
     public string solvedFlag = "puzzle1Solved";
@@ -51,13 +38,9 @@ public class SafeDialPuzzle : MonoBehaviour
     public UnityEvent onCorrectCode;
     public UnityEvent onWrongCode;
 
-    private bool isUsing;
+    private bool isOpen;
     private bool solved;
     private bool doorIsOpening;
-
-    private List<int> enteredNumbers = new List<int>();
-    private Vector2 dialInput;
-    private float numberStepTimer;
 
     private CursorLockMode oldCursorLockMode;
     private bool oldCursorVisible;
@@ -65,83 +48,72 @@ public class SafeDialPuzzle : MonoBehaviour
 
     void Start()
     {
+        if (safePuzzlePanel != null)
+            safePuzzlePanel.SetActive(false);
+
         if (safeVirtualCamera != null)
             safeVirtualCamera.SetActive(false);
 
         if (objectToShowAfterSolved != null)
             objectToShowAfterSolved.SetActive(false);
 
-        if (dialPanel != null)
-            dialPanel.SetActive(false);
-
-        UpdateText("Press E to inspect the safe.");
-    }
-
-    void Update()
-    {
-        if (!isUsing || solved) return;
-
-        if (Mathf.Abs(dialInput.x) > 0.2f)
-        {
-            int direction = dialInput.x > 0f ? 1 : -1;
-            RotateDial(direction);
-        }
-        else
-        {
-            numberStepTimer = 0f;
-        }
+        SetFeedback("");
     }
 
     public void OpenDial()
     {
         if (solved)
-        {
-            Debug.Log("SafeDialPuzzle: Safe already solved.");
             return;
-        }
 
-        if (isUsing) return;
+        if (isOpen)
+            return;
 
-        isUsing = true;
-        currentNumber = 0;
-        dialInput = Vector2.zero;
-        numberStepTimer = 0f;
-        enteredNumbers.Clear();
+        isOpen = true;
 
         oldCursorLockMode = Cursor.lockState;
         oldCursorVisible = Cursor.visible;
         oldTimeScale = Time.timeScale;
 
-        SetDisabledScripts(false);
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideDialogue();
+            UIManager.Instance.ShowInteract("");
+        }
 
         if (playerVirtualCamera != null)
             playerVirtualCamera.SetActive(false);
 
         if (safeVirtualCamera != null)
             safeVirtualCamera.SetActive(true);
-        else
-            Debug.LogWarning("SafeDialPuzzle: Safe Virtual Camera is empty. The puzzle still works, but camera will not zoom.");
 
-        if (dialPanel != null)
-            dialPanel.SetActive(true);
+        if (safePuzzlePanel != null)
+            safePuzzlePanel.SetActive(true);
 
-        if (freezeTimeWhileUsing)
-            Time.timeScale = 0f;
+        SetDisabledScripts(false);
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
-        UpdateText("A / D rotate   Space confirm   Esc close");
+        if (codeInput != null)
+        {
+            codeInput.text = "";
+            codeInput.Select();
+            codeInput.ActivateInputField();
+        }
 
-        Debug.Log("SafeDialPuzzle: Opened.");
+        SetFeedback("");
     }
 
     public void CloseDial()
     {
-        if (!isUsing) return;
+        if (!isOpen)
+            return;
 
-        isUsing = false;
-        dialInput = Vector2.zero;
+        isOpen = false;
+
+        if (safePuzzlePanel != null)
+            safePuzzlePanel.SetActive(false);
 
         if (safeVirtualCamera != null)
             safeVirtualCamera.SetActive(false);
@@ -149,145 +121,95 @@ public class SafeDialPuzzle : MonoBehaviour
         if (playerVirtualCamera != null)
             playerVirtualCamera.SetActive(true);
 
-        if (dialPanel != null)
-            dialPanel.SetActive(false);
-
-        if (freezeTimeWhileUsing)
-            Time.timeScale = oldTimeScale;
-
+        Time.timeScale = oldTimeScale;
         Cursor.lockState = oldCursorLockMode;
         Cursor.visible = oldCursorVisible;
 
         SetDisabledScripts(true);
 
-        Debug.Log("SafeDialPuzzle: Closed.");
+        if (UIManager.Instance != null)
+            UIManager.Instance.ShowInteract("");
     }
 
-    void SetDisabledScripts(bool value)
+    public void SubmitFromInput()
     {
-        if (disableWhileUsing == null) return;
+        if (!isOpen || solved)
+            return;
 
-        for (int i = 0; i < disableWhileUsing.Length; i++)
+        if (codeInput == null)
         {
-            if (disableWhileUsing[i] != null)
-                disableWhileUsing[i].enabled = value;
-        }
-    }
-
-    void RotateDial(int direction)
-    {
-        int visualDirection = invertDirection ? -direction : direction;
-
-        if (dialTransform != null)
-        {
-            dialTransform.Rotate(
-                dialRotationAxis * visualDirection * visualRotateSpeed * Time.unscaledDeltaTime,
-                Space.Self
-            );
-        }
-
-        numberStepTimer -= Time.unscaledDeltaTime;
-
-        if (numberStepTimer <= 0f)
-        {
-            currentNumber += direction;
-
-            if (currentNumber > maxNumber)
-                currentNumber = 0;
-
-            if (currentNumber < 0)
-                currentNumber = maxNumber;
-
-            numberStepTimer = numberStepDelay;
-
-            UpdateText("A / D rotate   Space confirm   Esc close");
-            Debug.Log("SafeDialPuzzle: Current number = " + currentNumber);
-        }
-    }
-
-    public void ConfirmNumber()
-    {
-        if (!isUsing) return;
-        if (solved) return;
-
-        if (correctCode == null || correctCode.Length == 0)
-        {
-            Debug.LogError("SafeDialPuzzle: Correct Code is empty.");
+            Debug.LogError("SafeDialPuzzle: Code Input is not assigned.");
             return;
         }
 
-        enteredNumbers.Add(currentNumber);
+        SubmitCode(codeInput.text);
+    }
 
-        Debug.Log("SafeDialPuzzle: Added number " + currentNumber);
-        Debug.Log("SafeDialPuzzle: Entered code = " + GetEnteredCodeText());
-
-        UpdateText("Number saved.");
-
-        if (enteredNumbers.Count < correctCode.Length)
+    public void SubmitCode(string playerCode)
+    {
+        if (!isOpen || solved)
             return;
 
-        if (IsEnteredCodeCorrect())
+        string cleanPlayerCode = NormalizeCode(playerCode);
+        string cleanCorrectCode = NormalizeCode(correctCode);
+
+        Debug.Log("SafeDialPuzzle: Player code = [" + cleanPlayerCode + "]");
+        Debug.Log("SafeDialPuzzle: Correct code = [" + cleanCorrectCode + "]");
+
+        if (string.IsNullOrEmpty(cleanPlayerCode))
+        {
+            SetFeedback("Enter the code first.");
+            FocusInput();
+            return;
+        }
+
+        if (cleanPlayerCode == cleanCorrectCode)
         {
             SolvePuzzle();
-        }
-        else
-        {
-            Debug.Log("SafeDialPuzzle: Wrong code. Entered = " + GetEnteredCodeText());
-
-            enteredNumbers.Clear();
-            currentNumber = 0;
-
-            onWrongCode.Invoke();
-
-            UpdateText("Wrong code. Try again.");
-        }
-    }
-
-    bool IsEnteredCodeCorrect()
-    {
-        if (enteredNumbers.Count != correctCode.Length)
-            return false;
-
-        for (int i = 0; i < correctCode.Length; i++)
-        {
-            if (enteredNumbers[i] != correctCode[i])
-                return false;
+            return;
         }
 
-        return true;
+        onWrongCode.Invoke();
+
+        SetFeedback("Wrong code.");
+        
+        if (codeInput != null)
+            codeInput.text = "";
+
+        FocusInput();
     }
 
     void SolvePuzzle()
+{
+    solved = true;
+
+    if (GameManager.Instance != null)
+        GameManager.Instance.SetFlag(solvedFlag, true);
+
+    if (UIManager.Instance != null)
     {
-        Debug.Log("SafeDialPuzzle: Correct code entered. Opening safe.");
-
-        solved = true;
-
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.SetFlag(solvedFlag, true);
-            GameManager.Instance.AddItem("Cabinet Note");
-        }
-
-        if (UIManager.Instance != null)
-            UIManager.Instance.SetObjective("The safe opened. Remember the color of the second visit.");
-
-        if (objectToShowAfterSolved != null)
-            objectToShowAfterSolved.SetActive(true);
-
-        if (objectToHideAfterSolved != null)
-            objectToHideAfterSolved.SetActive(false);
-
-        onCorrectCode.Invoke();
-
-        if (openDoorOnSolved && safeDoor != null && !doorIsOpening)
-            StartCoroutine(OpenDoorRoutine());
-
-        if (closeViewAfterSolved)
-            CloseDial();
-        else
-            UpdateText("Correct. Safe opened.");
+        UIManager.Instance.SetObjective("The safe opened. Remember the color of the second visit.");
+        UIManager.Instance.HideDialogue();
+        UIManager.Instance.ShowInteract("");
     }
+
+    if (objectToShowAfterSolved != null)
+        objectToShowAfterSolved.SetActive(true);
+
+    if (objectToHideAfterSolved != null)
+        objectToHideAfterSolved.SetActive(false);
+
+    onCorrectCode.Invoke();
+
+    CloseDial();
+
+    InteractableObject safeInteractable = GetComponent<InteractableObject>();
+    if (safeInteractable != null)
+        safeInteractable.enabled = false;
+
+    if (openDoorOnSolved && safeDoor != null && !doorIsOpening)
+        StartCoroutine(OpenDoorRoutine());
+}
 
     IEnumerator OpenDoorRoutine()
     {
@@ -312,62 +234,65 @@ public class SafeDialPuzzle : MonoBehaviour
 
         safeDoor.localRotation = targetRotation;
         doorIsOpening = false;
-
-        Debug.Log("SafeDialPuzzle: Door opened.");
     }
 
-    string GetEnteredCodeText()
+    string NormalizeCode(string value)
     {
-        if (enteredNumbers.Count == 0)
-            return "Empty";
+        if (string.IsNullOrWhiteSpace(value))
+            return "";
 
-        string result = "";
+        value = value.Trim();
 
-        for (int i = 0; i < enteredNumbers.Count; i++)
+        value = value.Replace(" ", "");
+        value = value.Replace("-", "");
+        value = value.Replace("_", "");
+        value = value.Replace(",", "");
+        value = value.Replace(".", "");
+
+        return value;
+    }
+
+    void SetFeedback(string message)
+    {
+        if (feedbackText != null)
+            feedbackText.text = message;
+    }
+
+    void FocusInput()
+    {
+        if (codeInput == null)
+            return;
+
+        codeInput.Select();
+        codeInput.ActivateInputField();
+    }
+
+    void SetDisabledScripts(bool value)
+    {
+        if (disableWhileOpen == null)
+            return;
+
+        for (int i = 0; i < disableWhileOpen.Length; i++)
         {
-            result += enteredNumbers[i].ToString();
-
-            if (i < enteredNumbers.Count - 1)
-                result += " ";
+            if (disableWhileOpen[i] != null)
+                disableWhileOpen[i].enabled = value;
         }
-
-        return result;
-    }
-
-    void UpdateText(string extraMessage)
-    {
-        if (displayText == null) return;
-
-        int total = correctCode != null ? correctCode.Length : 0;
-
-        displayText.text =
-            "CURRENT NUMBER: " + currentNumber +
-            "\nENTERED: " + GetEnteredCodeText() +
-            "\nCOUNT: " + enteredNumbers.Count + " / " + total +
-            "\n" + extraMessage;
-    }
-
-    public void OnDialMove(InputAction.CallbackContext context)
-    {
-        if (!isUsing) return;
-
-        dialInput = context.ReadValue<Vector2>();
-
-        if (context.canceled)
-            dialInput = Vector2.zero;
     }
 
     public void OnConfirmInput(InputAction.CallbackContext context)
     {
-        if (!context.performed) return;
+        if (!context.performed)
+            return;
 
-        ConfirmNumber();
+        SubmitFromInput();
     }
 
     public void OnCloseInput(InputAction.CallbackContext context)
     {
-        if (!context.performed) return;
+        if (!context.performed)
+            return;
 
-        CloseDial();
+        if (isOpen)
+            CloseDial();
     }
 }

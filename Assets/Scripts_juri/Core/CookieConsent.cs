@@ -1,36 +1,61 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class CookieConsent : MonoBehaviour
 {
-    [Header("UI")]
-    public GameObject consentPanel;
+    [Header("Cookie Screen")]
+    public GameObject cookiePanel;
+    public bool showCookieScreenOnStart = true;
 
-    [Header("Player Optional")]
-    public PlayerMovements playerMovement;
-    public PlayerInput playerInput;
+    [Header("Player UI")]
+    public GameObject playerUI;
 
-    [Header("Cookie Item Optional")]
-    public GameObject cookiePrefab;
-    public Transform cookieHoldPoint;
+    [Header("Disable Player Until Accept")]
+    public Behaviour[] disableBeforeAccept;
+
+    [Header("Companion Spawn")]
+    public GameObject companionObject;
+    public Transform[] companionSpawnPoints;
+    public bool hideCompanionUntilAccept = true;
+
+    [Header("Cookie Inventory")]
+    public string cookieFlag = "hasCookies";
+    public string cookieItemName = "Cookies";
+    public bool addCookiesToInventory = true;
+
+    [Header("After Accept")]
+    public string afterAcceptObjective = "Turn around. You are not alone.";
+
+    private bool accepted;
+
+    void Awake()
+    {
+        accepted = false;
+    }
 
     void Start()
     {
-        OpenCookieScreen();
+        if (showCookieScreenOnStart)
+            OpenCookieScreen();
+        else
+            SkipCookieScreen();
     }
 
-    public void OpenCookieScreen()
+    void OpenCookieScreen()
     {
+        accepted = false;
+
+        if (cookiePanel != null)
+            cookiePanel.SetActive(true);
+
+        if (playerUI != null)
+            playerUI.SetActive(false);
+
+        if (hideCompanionUntilAccept && companionObject != null)
+            companionObject.SetActive(false);
+
+        SetPlayerEnabled(false);
+
         Time.timeScale = 0f;
-
-        if (consentPanel != null)
-            consentPanel.SetActive(true);
-
-        if (playerMovement != null)
-            playerMovement.enabled = false;
-
-        if (playerInput != null)
-            playerInput.enabled = false;
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -38,40 +63,108 @@ public class CookieConsent : MonoBehaviour
 
     public void AcceptCookies()
     {
+        if (accepted)
+            return;
+
+        accepted = true;
+
+        if (cookiePanel != null)
+            cookiePanel.SetActive(false);
+
+        if (playerUI != null)
+            playerUI.SetActive(true);
+
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.SetFlag("hasCookies", true);
-            GameManager.Instance.AddItem("Cookies");
+            GameManager.Instance.SetFlag(cookieFlag, true);
+
+            if (addCookiesToInventory)
+                GameManager.Instance.AddItem(cookieItemName);
+
             GameManager.Instance.gameStarted = true;
         }
 
-        if (cookiePrefab != null && cookieHoldPoint != null)
+        if (UIManager.Instance != null)
         {
-            GameObject cookie = Instantiate(cookiePrefab, cookieHoldPoint.position, cookieHoldPoint.rotation);
-            cookie.transform.SetParent(cookieHoldPoint);
-            cookie.transform.localPosition = Vector3.zero;
-            cookie.transform.localRotation = Quaternion.identity;
+            UIManager.Instance.SetCookieIcon(true);
+            UIManager.Instance.SetObjective(afterAcceptObjective);
+            UIManager.Instance.HideDialogue();
+
+            if (addCookiesToInventory)
+                UIManager.Instance.SetInventoryText("Inventory: Cookies");
         }
 
-        if (consentPanel != null)
-            consentPanel.SetActive(false);
-
-        if (playerMovement != null)
-            playerMovement.enabled = true;
-
-        if (playerInput != null)
-            playerInput.enabled = true;
+        SpawnCompanion();
 
         Time.timeScale = 1f;
+
+        SetPlayerEnabled(true);
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
-        if (UIManager.Instance != null)
-            UIManager.Instance.SetObjective("Find the three broken number clues. The missing spaces are not the answer.");
     }
 
     public void RejectCookies()
     {
-        Debug.Log("No is not allowed.");
+        if (UIManager.Instance != null)
+            UIManager.Instance.ShowDialogueLine("No cookies? That is not how this starts.");
+    }
+
+    public void SkipCookieScreen()
+    {
+        accepted = true;
+
+        if (cookiePanel != null)
+            cookiePanel.SetActive(false);
+
+        if (playerUI != null)
+            playerUI.SetActive(true);
+
+        SpawnCompanion();
+
+        SetPlayerEnabled(true);
+
+        Time.timeScale = 1f;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void SetPlayerEnabled(bool value)
+    {
+        if (disableBeforeAccept == null)
+            return;
+
+        for (int i = 0; i < disableBeforeAccept.Length; i++)
+        {
+            if (disableBeforeAccept[i] != null)
+                disableBeforeAccept[i].enabled = value;
+        }
+    }
+
+    void SpawnCompanion()
+    {
+        if (companionObject == null)
+            return;
+
+        if (companionSpawnPoints != null && companionSpawnPoints.Length > 0)
+        {
+            int index = Random.Range(0, companionSpawnPoints.Length);
+            Transform spawnPoint = companionSpawnPoints[index];
+
+            if (spawnPoint != null)
+            {
+                companionObject.transform.position = spawnPoint.position;
+                companionObject.transform.rotation = spawnPoint.rotation;
+            }
+        }
+
+        companionObject.SetActive(true);
+
+        HeIsRightBehindMeIsntHe followScript =
+            companionObject.GetComponent<HeIsRightBehindMeIsntHe>();
+
+        if (followScript != null)
+            followScript.enabled = false;
     }
 }

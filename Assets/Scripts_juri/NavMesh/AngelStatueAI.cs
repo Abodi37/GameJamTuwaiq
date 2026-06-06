@@ -28,14 +28,6 @@ public class AngelStatueAI : MonoBehaviour
     public float movementSoundVolume = 0.7f;
     public float movingVelocityThreshold = 0.05f;
 
-    [Header("Debug")]
-    public bool showDebugLogs = true;
-
-    private bool hasPrintedNoPlayer;
-    private bool hasPrintedNoAgent;
-    private bool hasPrintedWaitingFlag;
-    private bool hasPrintedNoNavMesh;
-
     void Start()
     {
         AutoAssignReferences();
@@ -50,60 +42,28 @@ public class AngelStatueAI : MonoBehaviour
     {
         AutoAssignReferences();
 
-        if (player == null)
+        if (player == null || agent == null)
         {
             StopMovementSound();
-
-            if (showDebugLogs && !hasPrintedNoPlayer)
-            {
-                Debug.LogWarning(name + ": Angel cannot move because Player is missing.");
-                hasPrintedNoPlayer = true;
-            }
-
-            return;
-        }
-
-        if (agent == null)
-        {
-            StopMovementSound();
-
-            if (showDebugLogs && !hasPrintedNoAgent)
-            {
-                Debug.LogWarning(name + ": Angel cannot move because NavMeshAgent is missing.");
-                hasPrintedNoAgent = true;
-            }
-
             return;
         }
 
         if (!agent.isOnNavMesh)
         {
             StopMovementSound();
-
-            if (showDebugLogs && !hasPrintedNoNavMesh)
-            {
-                Debug.LogWarning(name + ": Angel NavMeshAgent is not on a NavMesh. Bake NavMesh or place angel on baked floor.");
-                hasPrintedNoNavMesh = true;
-            }
-
             return;
         }
 
         if (requireFlagToMove)
         {
-            bool flagReady = GameManager.Instance != null && GameManager.Instance.HasFlag(requiredFlag);
+            bool flagReady =
+                GameManager.Instance != null &&
+                GameManager.Instance.HasFlag(requiredFlag);
 
             if (!flagReady)
             {
                 agent.ResetPath();
                 StopMovementSound();
-
-                if (showDebugLogs && !hasPrintedWaitingFlag)
-                {
-                    Debug.LogWarning(name + ": Angel is waiting for flag: " + requiredFlag);
-                    hasPrintedWaitingFlag = true;
-                }
-
                 return;
             }
         }
@@ -114,24 +74,14 @@ public class AngelStatueAI : MonoBehaviour
         {
             agent.ResetPath();
             StopMovementSound();
-
-            if (showDebugLogs)
-                Debug.Log(name + ": Angel stopped because player can see it.");
-
             return;
         }
 
+        agent.speed = moveSpeed;
+        agent.isStopped = false;
         agent.SetDestination(player.position);
-        UpdateMovementSound();
 
-        if (showDebugLogs)
-        {
-            Debug.Log(
-                name +
-                ": Angel moving. Distance = " +
-                Vector3.Distance(transform.position, player.position)
-            );
-        }
+        UpdateMovementSound();
 
         float distance = Vector3.Distance(transform.position, player.position);
 

@@ -240,17 +240,6 @@
                 },
                 {
                     "name": "",
-                    "id": "042e4907-3561-4165-b59d-c5ae1d9170d4",
-                    "path": "<Gamepad>/buttonSouth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Interact",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "7c35b353-01b9-45d1-8fa3-093df0c2df17",
                     "path": "<Keyboard>/escape",
                     "interactions": "",
@@ -285,7 +274,7 @@
                 {
                     "name": "",
                     "id": "49a70f84-a6b1-41c6-b6c4-8ca768d3e602",
-                    "path": "<Gamepad>/buttonNorth",
+                    "path": "<Gamepad>/buttonSouth",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
