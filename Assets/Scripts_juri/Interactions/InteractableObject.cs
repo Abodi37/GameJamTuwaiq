@@ -170,30 +170,43 @@ public class InteractableObject : MonoBehaviour
     }
 
     public void SetHighlighted(bool value)
+{
+    if (!enableHighlight)
+        value = false;
+
+    if (isHeld)
+        value = false;
+
+    SimpleOutline outline = GetComponent<SimpleOutline>();
+
+    if (outline == null)
+        outline = GetComponentInChildren<SimpleOutline>();
+
+    if (outline != null)
     {
-        if (!enableHighlight)
-            value = false;
+        outline.SetOutline(value);
+        return;
+    }
 
-        if (materials == null) return;
-        if (isHeld) value = false;
+    if (materials == null) return;
 
-        for (int i = 0; i < materials.Length; i++)
+    for (int i = 0; i < materials.Length; i++)
+    {
+        if (materials[i] == null) continue;
+        if (!materials[i].HasProperty("_EmissionColor")) continue;
+
+        if (value)
         {
-            if (materials[i] == null) continue;
-            if (!materials[i].HasProperty("_EmissionColor")) continue;
+            materials[i].EnableKeyword("_EMISSION");
+            materials[i].SetColor("_EmissionColor", highlightColor * highlightPower);
+        }
+        else
+        {
+            materials[i].SetColor("_EmissionColor", originalEmissionColors[i]);
 
-            if (value)
-            {
-                materials[i].EnableKeyword("_EMISSION");
-                materials[i].SetColor("_EmissionColor", highlightColor * highlightPower);
-            }
-            else
-            {
-                materials[i].SetColor("_EmissionColor", originalEmissionColors[i]);
-
-                if (!hadEmissionKeyword[i])
-                    materials[i].DisableKeyword("_EMISSION");
-            }
+            if (!hadEmissionKeyword[i])
+                materials[i].DisableKeyword("_EMISSION");
         }
     }
+}
 }

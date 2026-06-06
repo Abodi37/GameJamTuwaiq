@@ -9,10 +9,12 @@ public class SafeDialPuzzle : MonoBehaviour
     [Header("Code")]
     public int[] correctCode = { 4, 8, 6 };
 
-    [Header("Camera Zoom")]
-    public Camera playerCamera;
-    public Transform safeViewPoint;
-    public float zoomDuration = 0.35f;
+    [Header("Cinemachine Cameras")]
+    public GameObject playerVirtualCamera;
+    public GameObject safeVirtualCamera;
+
+    [Tooltip("حطي هنا PlayerMovements أو سكربت النظر فقط. لا تحطين PlayerInput.")]
+    public Behaviour[] disableWhileUsing;
 
     [Header("Dial")]
     public Transform dialTransform;
@@ -23,9 +25,22 @@ public class SafeDialPuzzle : MonoBehaviour
     public int currentNumber = 0;
     public int maxNumber = 9;
 
+    [Header("Safe Door")]
+    public Transform safeDoor;
+    public bool openDoorOnSolved = true;
+    public Vector3 openDoorLocalRotation = new Vector3(0f, -90f, 0f);
+    public float doorOpenDuration = 0.8f;
+
+    [Header("Reward Optional")]
+    public GameObject objectToShowAfterSolved;
+    public GameObject objectToHideAfterSolved;
+
     [Header("UI Optional")]
     public GameObject dialPanel;
     public TMP_Text displayText;
+
+    [Header("Settings")]
+    public bool freezeTimeWhileUsing = false;
 
     [Header("Flags")]
     public string solvedFlag = "puzzle1Solved";
@@ -34,31 +49,37 @@ public class SafeDialPuzzle : MonoBehaviour
     public UnityEvent onCorrectCode;
     public UnityEvent onWrongCode;
 
-    private int codeIndex = 0;
-    private bool isUsing = false;
-    private bool solved = false;
+    private int codeIndex;
+    private bool isUsing;
+    private bool solved;
+    private bool doorIsOpening;
 
     private Vector2 dialInput;
     private float numberStepTimer;
 
-    private Transform originalCameraParent;
-    private Vector3 originalCameraLocalPosition;
-    private Quaternion originalCameraLocalRotation;
-    private Vector3 originalCameraWorldPosition;
-    private Quaternion originalCameraWorldRotation;
-
     private CursorLockMode oldCursorLockMode;
     private bool oldCursorVisible;
+    private float oldTimeScale;
 
-    private Coroutine cameraRoutine;
+    private Quaternion doorClosedRotation;
+    private Quaternion doorOpenRotation;
 
     void Start()
     {
-        if (playerCamera == null)
-            playerCamera = Camera.main;
+        if (safeVirtualCamera != null)
+            safeVirtualCamera.SetActive(false);
+
+        if (objectToShowAfterSolved != null)
+            objectToShowAfterSolved.SetActive(false);
 
         if (dialPanel != null)
             dialPanel.SetActive(false);
+
+        if (safeDoor != null)
+        {
+            doorClosedRotation = safeDoor.localRotation;
+            doorOpenRotation = Quaternion.Euler(openDoorLocalRotation);
+        }
 
         UpdateText("Press E to inspect the safe.");
     }
@@ -67,11 +88,9 @@ public class SafeDialPuzzle : MonoBehaviour
     {
         if (!isUsing || solved) return;
 
-        float horizontal = dialInput.x;
-
-        if (Mathf.Abs(horizontal) > 0.2f)
+        if (Mathf.Abs(dialInput.x) > 0.2f)
         {
-            int direction = horizontal > 0f ? 1 : -1;
+            int direction = dialInput.x > 0f ? 1 : -1;
             RotateDial(direction);
         }
         else
@@ -82,8 +101,21 @@ public class SafeDialPuzzle : MonoBehaviour
 
     public void OpenDial()
     {
-        if (solved) return;
+        if (solved)
+        {
+            Debug.Log("SafeDialPuzzle: Safe already solved.");
+            return;
+        }
+
         if (isUsing) return;
+
+        if (safeVirtualCamera == null)
+        {
+            Debug.LogError("SafeDialPuzzle: Safe Virtual Camera is missing.");
+            return;
+        }
+
+        Debug.Log("SafeDialPuzzle: OpenDial started.");
 
         isUsing = true;
         codeIndex = 0;
@@ -91,25 +123,25 @@ public class SafeDialPuzzle : MonoBehaviour
         dialInput = Vector2.zero;
         numberStepTimer = 0f;
 
-        SaveCameraAndCursor();
+        oldCursorLockMode = Cursor.lockState;
+        oldCursorVisible = Cursor.visible;
+        oldTimeScale = Time.timeScale;
+
+        SetDisabledScripts(false);
+
+        if (playerVirtualCamera != null)
+            playerVirtualCamera.SetActive(false);
+
+        safeVirtualCamera.SetActive(true);
 
         if (dialPanel != null)
             dialPanel.SetActive(true);
 
-        Time.timeScale = 0f;
+        if (freezeTimeWhileUsing)
+            Time.timeScale = 0f;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-
-        if (playerCamera != null && safeViewPoint != null)
-        {
-            StartCameraMove(
-                playerCamera.transform.position,
-                playerCamera.transform.rotation,
-                safeViewPoint.position,
-                safeViewPoint.rotation
-            );
-        }
 
         UpdateText("A / D rotate   Space confirm   Esc close");
     }
@@ -121,107 +153,33 @@ public class SafeDialPuzzle : MonoBehaviour
         isUsing = false;
         dialInput = Vector2.zero;
 
+        if (safeVirtualCamera != null)
+            safeVirtualCamera.SetActive(false);
+
+        if (playerVirtualCamera != null)
+            playerVirtualCamera.SetActive(true);
+
         if (dialPanel != null)
             dialPanel.SetActive(false);
 
-        if (playerCamera != null)
-        {
-            StartCoroutine(CloseCameraRoutine());
-        }
-        else
-        {
-            FinishClose();
-        }
-    }
-
-    IEnumerator CloseCameraRoutine()
-    {
-        Vector3 targetPosition = GetOriginalCameraWorldPosition();
-        Quaternion targetRotation = GetOriginalCameraWorldRotation();
-
-        yield return MoveCameraRoutine(
-            playerCamera.transform.position,
-            playerCamera.transform.rotation,
-            targetPosition,
-            targetRotation
-        );
-
-        FinishClose();
-    }
-
-    void FinishClose()
-    {
-        Time.timeScale = 1f;
+        if (freezeTimeWhileUsing)
+            Time.timeScale = oldTimeScale;
 
         Cursor.lockState = oldCursorLockMode;
         Cursor.visible = oldCursorVisible;
 
-        if (playerCamera != null)
+        SetDisabledScripts(true);
+    }
+
+    void SetDisabledScripts(bool value)
+    {
+        if (disableWhileUsing == null) return;
+
+        for (int i = 0; i < disableWhileUsing.Length; i++)
         {
-            playerCamera.transform.localPosition = originalCameraLocalPosition;
-            playerCamera.transform.localRotation = originalCameraLocalRotation;
+            if (disableWhileUsing[i] != null)
+                disableWhileUsing[i].enabled = value;
         }
-    }
-
-    void SaveCameraAndCursor()
-    {
-        oldCursorLockMode = Cursor.lockState;
-        oldCursorVisible = Cursor.visible;
-
-        if (playerCamera == null) return;
-
-        originalCameraParent = playerCamera.transform.parent;
-        originalCameraLocalPosition = playerCamera.transform.localPosition;
-        originalCameraLocalRotation = playerCamera.transform.localRotation;
-        originalCameraWorldPosition = playerCamera.transform.position;
-        originalCameraWorldRotation = playerCamera.transform.rotation;
-    }
-
-    Vector3 GetOriginalCameraWorldPosition()
-    {
-        if (originalCameraParent != null)
-            return originalCameraParent.TransformPoint(originalCameraLocalPosition);
-
-        return originalCameraWorldPosition;
-    }
-
-    Quaternion GetOriginalCameraWorldRotation()
-    {
-        if (originalCameraParent != null)
-            return originalCameraParent.rotation * originalCameraLocalRotation;
-
-        return originalCameraWorldRotation;
-    }
-
-    void StartCameraMove(Vector3 fromPos, Quaternion fromRot, Vector3 toPos, Quaternion toRot)
-    {
-        if (cameraRoutine != null)
-            StopCoroutine(cameraRoutine);
-
-        cameraRoutine = StartCoroutine(MoveCameraRoutine(fromPos, fromRot, toPos, toRot));
-    }
-
-    IEnumerator MoveCameraRoutine(Vector3 fromPos, Quaternion fromRot, Vector3 toPos, Quaternion toRot)
-    {
-        if (playerCamera == null)
-            yield break;
-
-        float timer = 0f;
-
-        while (timer < zoomDuration)
-        {
-            timer += Time.unscaledDeltaTime;
-            float t = Mathf.Clamp01(timer / zoomDuration);
-            t = t * t * (3f - 2f * t);
-
-            playerCamera.transform.position = Vector3.Lerp(fromPos, toPos, t);
-            playerCamera.transform.rotation = Quaternion.Slerp(fromRot, toRot, t);
-
-            yield return null;
-        }
-
-        playerCamera.transform.position = toPos;
-        playerCamera.transform.rotation = toRot;
     }
 
     void RotateDial(int direction)
@@ -251,6 +209,7 @@ public class SafeDialPuzzle : MonoBehaviour
             numberStepTimer = numberStepDelay;
 
             UpdateText("A / D rotate   Space confirm   Esc close");
+            Debug.Log("SafeDialPuzzle: Current number = " + currentNumber);
         }
     }
 
@@ -258,7 +217,14 @@ public class SafeDialPuzzle : MonoBehaviour
     {
         if (!isUsing) return;
         if (solved) return;
-        if (correctCode == null || correctCode.Length == 0) return;
+
+        if (correctCode == null || correctCode.Length == 0)
+        {
+            Debug.LogError("SafeDialPuzzle: Correct Code is empty.");
+            return;
+        }
+
+        Debug.Log("SafeDialPuzzle: Confirmed " + currentNumber + ". Need " + correctCode[codeIndex]);
 
         if (currentNumber == correctCode[codeIndex])
         {
@@ -280,11 +246,14 @@ public class SafeDialPuzzle : MonoBehaviour
             onWrongCode.Invoke();
 
             UpdateText("Wrong. The dial reset.");
+            Debug.Log("SafeDialPuzzle: Wrong code. Reset.");
         }
     }
 
     void SolvePuzzle()
     {
+        Debug.Log("SafeDialPuzzle: Correct code entered. Opening safe door.");
+
         solved = true;
 
         if (GameManager.Instance != null)
@@ -296,18 +265,49 @@ public class SafeDialPuzzle : MonoBehaviour
         if (UIManager.Instance != null)
             UIManager.Instance.SetObjective("The safe opened. Remember the color of the second visit.");
 
+        if (objectToShowAfterSolved != null)
+            objectToShowAfterSolved.SetActive(true);
+
+        if (objectToHideAfterSolved != null)
+            objectToHideAfterSolved.SetActive(false);
+
         onCorrectCode.Invoke();
+
         CloseDial();
+
+        if (openDoorOnSolved && safeDoor != null && !doorIsOpening)
+            StartCoroutine(OpenDoorRoutine());
+    }
+
+    IEnumerator OpenDoorRoutine()
+    {
+        doorIsOpening = true;
+
+        Quaternion startRotation = safeDoor.localRotation;
+        Quaternion targetRotation = Quaternion.Euler(openDoorLocalRotation);
+
+        float timer = 0f;
+
+        while (timer < doorOpenDuration)
+        {
+            timer += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(timer / doorOpenDuration);
+            t = t * t * (3f - 2f * t);
+
+            safeDoor.localRotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+            yield return null;
+        }
+
+        safeDoor.localRotation = targetRotation;
+        doorIsOpening = false;
     }
 
     void UpdateText(string extraMessage)
     {
         if (displayText == null) return;
 
-        int total = 0;
-
-        if (correctCode != null)
-            total = correctCode.Length;
+        int total = correctCode != null ? correctCode.Length : 0;
 
         displayText.text =
             "NUMBER: " + currentNumber +
@@ -328,12 +328,14 @@ public class SafeDialPuzzle : MonoBehaviour
     public void OnConfirmInput(InputAction.CallbackContext context)
     {
         if (!context.performed) return;
+
         ConfirmNumber();
     }
 
     public void OnCloseInput(InputAction.CallbackContext context)
     {
         if (!context.performed) return;
+
         CloseDial();
     }
 }
