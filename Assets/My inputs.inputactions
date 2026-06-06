@@ -50,6 +50,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Continue (SKIP)",
+                    "type": "Button",
+                    "id": "c9b9550b-af17-43f5-8873-2bf26c2b3036",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -220,17 +229,6 @@
                 },
                 {
                     "name": "",
-                    "id": "8e3220d4-944f-4836-9dd1-880dfc7ce3cf",
-                    "path": "<Keyboard>/space",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Interact",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "fd163835-af70-4406-b4b0-220356b306cf",
                     "path": "<Gamepad>/buttonWest",
                     "interactions": "Press",
@@ -270,6 +268,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Pause menu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1e0aca24-c074-4e21-b064-2d4eb11712b3",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Continue (SKIP)",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "49a70f84-a6b1-41c6-b6c4-8ca768d3e602",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Continue (SKIP)",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

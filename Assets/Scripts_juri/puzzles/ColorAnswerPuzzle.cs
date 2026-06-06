@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 public class ColorAnswerPuzzle : MonoBehaviour
 {
@@ -15,6 +16,11 @@ public class ColorAnswerPuzzle : MonoBehaviour
     public int correctVisitNumber = 2;
     public string fallbackCorrectAnswer = "Blue";
 
+    [Header("Attempts")]
+    public int maxAttempts = 3;
+    public TMP_Text feedbackText;
+    public PlayerStats playerStats;
+
     [Header("Flags")]
     public string requiredFlag = "puzzle1Solved";
     public string solvedFlag = "puzzle2Solved";
@@ -22,13 +28,38 @@ public class ColorAnswerPuzzle : MonoBehaviour
     [Header("Events")]
     public UnityEvent onSolved;
     public UnityEvent onWrong;
+    public UnityEvent onFailedAllAttempts;
 
     private bool solved;
+    private bool isOpen;
+    private int attemptsLeft;
 
     void Start()
     {
+        attemptsLeft = maxAttempts;
+
         if (questionPanel != null)
             questionPanel.SetActive(false);
+
+        UpdateQuestionText();
+        UpdateFeedbackText("");
+    }
+
+    void Update()
+    {
+        if (!isOpen || solved) return;
+        if (Keyboard.current == null) return;
+
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            CloseQuestion();
+            return;
+        }
+
+        if (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.numpadEnterKey.wasPressedThisFrame)
+        {
+            SubmitFromInput();
+        }
     }
 
     public void OpenQuestion()
@@ -49,23 +80,35 @@ public class ColorAnswerPuzzle : MonoBehaviour
             return;
         }
 
+        isOpen = true;
+
         if (questionPanel != null)
             questionPanel.SetActive(true);
 
-        if (questionText != null)
-            questionText.text = question;
-
         if (answerInput != null)
+        {
             answerInput.text = "";
+            answerInput.Select();
+            answerInput.ActivateInputField();
+        }
 
+        UpdateQuestionText();
+        UpdateFeedbackText("Type the color, then press Enter or the Submit button.");
+
+        Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
 
     public void CloseQuestion()
     {
+        isOpen = false;
+
         if (questionPanel != null)
             questionPanel.SetActive(false);
+
+        if (!IsPlayerDead())
+            Time.timeScale = 1f;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -73,20 +116,28 @@ public class ColorAnswerPuzzle : MonoBehaviour
 
     public void SubmitFromInput()
     {
+        if (!isOpen || solved) return;
         if (answerInput == null) return;
+
         SubmitAnswer(answerInput.text);
     }
 
     public void SubmitAnswer(string answer)
     {
-        if (solved) return;
+        if (!isOpen || solved) return;
 
-        string correctAnswer = fallbackCorrectAnswer;
+        answer = NormalizeAnswer(answer);
 
-        if (memoryObject != null)
-            correctAnswer = memoryObject.GetColorNameForVisit(correctVisitNumber);
+        if (string.IsNullOrEmpty(answer))
+        {
+            UpdateFeedbackText("Write an answer first.");
+            FocusInput();
+            return;
+        }
 
-        if (answer.Trim().ToLower() == correctAnswer.Trim().ToLower())
+        string correctAnswer = GetCorrectAnswer();
+
+        if (answer == NormalizeAnswer(correctAnswer))
         {
             solved = true;
 
@@ -101,16 +152,88 @@ public class ColorAnswerPuzzle : MonoBehaviour
         }
         else
         {
+            attemptsLeft--;
+            attemptsLeft = Mathf.Clamp(attemptsLeft, 0, maxAttempts);
+
             onWrong.Invoke();
 
-            if (DialogueSystem.Instance != null)
+            if (attemptsLeft <= 0)
             {
-                DialogueSystem.Instance.StartDialogue(new string[]
-                {
-                    "That memory does not fit.",
-                    "Think back to the second time you entered this room."
-                });
+                UpdateFeedbackText("Wrong answer. No attempts left.");
+                onFailedAllAttempts.Invoke();
+                KillPlayer();
+                return;
             }
+
+            UpdateQuestionText();
+            UpdateFeedbackText("Wrong answer. Attempts left: " + attemptsLeft);
+
+            if (answerInput != null)
+                answerInput.text = "";
+
+            FocusInput();
         }
     }
+
+    string GetCorrectAnswer()
+    {
+        if (memoryObject != null)
+            return memoryObject.GetColorNameForVisit(correctVisitNumber);
+
+        return fallbackCorrectAnswer;
+    }
+
+    string NormalizeAnswer(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "";
+
+        return value.Trim().ToLowerInvariant();
+    }
+
+    void UpdateQuestionText()
+    {
+        if (questionText != null)
+            questionText.text = question + "\nAttempts left: " + attemptsLeft + " / " + maxAttempts;
+    }
+
+    void UpdateFeedbackText(string message)
+    {
+        if (feedbackText != null)
+            feedbackText.text = message;
+    }
+
+    void FocusInput()
+    {
+        if (answerInput == null) return;
+
+        answerInput.Select();
+        answerInput.ActivateInputField();
+    }
+
+    void KillPlayer()
+    {
+        if (playerStats == null)
+            playerStats = FindObjectOfType<PlayerStats>();
+
+        CloseQuestion();
+
+        if (playerStats != null)
+            playerStats.Die();
+        else if (UIManager.Instance != null)
+            UIManager.Instance.ShowDeath();
+    }
+
+    bool IsPlayerDead()
+    {
+        if (playerStats == null)
+            playerStats = FindObjectOfType<PlayerStats>();
+
+        return playerStats != null && playerStats.IsDead();
+    }
+    public void OnSubmitAnswer(InputAction.CallbackContext context)
+{
+    if (!context.performed) return;
+    SubmitFromInput();
+}
 }

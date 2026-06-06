@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerInteraction : MonoBehaviour
 {
@@ -7,7 +8,6 @@ public class PlayerInteraction : MonoBehaviour
 
     [Header("Interaction")]
     public float interactDistance = 3f;
-    public KeyCode interactKey = KeyCode.E;
 
     [Header("Holding")]
     public Transform holdPoint;
@@ -37,29 +37,31 @@ public class PlayerInteraction : MonoBehaviour
         if (DialogueSystem.Instance != null && DialogueSystem.Instance.IsPlaying)
             return;
 
+        if (heldObject == null)
+            CheckForInteractable();
+    }
+
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+        if (Time.timeScale == 0f) return;
+
+        if (DialogueSystem.Instance != null && DialogueSystem.Instance.IsPlaying)
+            return;
+
         if (heldObject != null)
         {
+            heldObject.Drop();
+            heldObject = null;
+
             if (UIManager.Instance != null)
-                UIManager.Instance.ShowInteract("Press E to drop");
-
-            if (Input.GetKeyDown(interactKey))
-            {
-                heldObject.Drop();
-                heldObject = null;
-
-                if (UIManager.Instance != null)
-                    UIManager.Instance.ShowInteract("");
-            }
+                UIManager.Instance.ShowInteract("");
 
             return;
         }
 
-        CheckForInteractable();
-
-        if (currentTarget != null && Input.GetKeyDown(interactKey))
-        {
+        if (currentTarget != null)
             currentTarget.Interact(this);
-        }
     }
 
     void CheckForInteractable()

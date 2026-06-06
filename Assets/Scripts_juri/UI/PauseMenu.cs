@@ -1,10 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class PauseMenu : MonoBehaviour
 {
-    public KeyCode pauseKey = KeyCode.Escape;
-
     [Header("Scenes")]
     public string mainMenuSceneName = "MainMenu";
 
@@ -15,12 +14,14 @@ public class PauseMenu : MonoBehaviour
         SetPaused(false);
     }
 
-    void Update()
+    public void OnPause(InputAction.CallbackContext context)
     {
-        if (Input.GetKeyDown(pauseKey))
-        {
-            TogglePause();
-        }
+        if (!context.performed) return;
+
+        if (Time.timeScale == 0f && !isPaused)
+            return;
+
+        TogglePause();
     }
 
     public void TogglePause()
@@ -36,8 +37,6 @@ public class PauseMenu : MonoBehaviour
 
         if (UIManager.Instance != null)
             UIManager.Instance.SetPausePanel(isPaused);
-        else
-            gameObject.SetActive(isPaused);
     }
 
     public void Resume()
@@ -48,7 +47,6 @@ public class PauseMenu : MonoBehaviour
     public void RestartScene()
     {
         Time.timeScale = 1f;
-
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.buildIndex);
     }
@@ -56,10 +54,8 @@ public class PauseMenu : MonoBehaviour
     public void BackToMainMenu()
     {
         Time.timeScale = 1f;
-
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
         SceneManager.LoadScene(mainMenuSceneName);
     }
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class DialogueSystem : MonoBehaviour
 {
@@ -8,10 +9,7 @@ public class DialogueSystem : MonoBehaviour
     private int currentIndex;
     private bool isPlaying;
 
-    public bool IsPlaying
-    {
-        get { return isPlaying; }
-    }
+    public bool IsPlaying => isPlaying;
 
     void Awake()
     {
@@ -24,12 +22,12 @@ public class DialogueSystem : MonoBehaviour
         Instance = this;
     }
 
-    void Update()
+    public void OnContinue(InputAction.CallbackContext context)
     {
+        if (!context.performed) return;
         if (!isPlaying) return;
 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-            NextLine();
+        NextLine();
     }
 
     public void StartDialogue(string[] lines)
