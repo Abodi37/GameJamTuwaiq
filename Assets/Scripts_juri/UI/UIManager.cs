@@ -29,6 +29,7 @@ public class UIManager : MonoBehaviour
     [Header("Dialogue UI")]
     public GameObject dialoguePanel;
     public TMP_Text dialogueText;
+    public GameObject dialogueContinueIcon;
 
     [Header("Panels")]
     public GameObject deathPanel;
@@ -56,8 +57,7 @@ public class UIManager : MonoBehaviour
         if (objectivePanel != null)
             objectivePanel.SetActive(true);
 
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
+        HideDialogue();
 
         if (deathPanel != null)
             deathPanel.SetActive(false);
@@ -133,11 +133,13 @@ public class UIManager : MonoBehaviour
 
     public void ShowInteract(string message)
     {
-        if (interactText == null) return;
+        if (interactText == null)
+            return;
 
-        bool hasMessage = !string.IsNullOrEmpty(message);
+        bool hasMessage = !string.IsNullOrWhiteSpace(message);
+
         interactText.gameObject.SetActive(hasMessage);
-        interactText.text = message;
+        interactText.text = hasMessage ? message : "";
     }
 
     public void ShowDialogueLine(string line)
@@ -147,12 +149,26 @@ public class UIManager : MonoBehaviour
 
         if (dialogueText != null)
             dialogueText.text = line;
+
+        if (dialogueContinueIcon != null)
+            dialogueContinueIcon.SetActive(true);
     }
 
     public void HideDialogue()
     {
+        if (dialogueText != null)
+            dialogueText.text = "";
+
+        if (dialogueContinueIcon != null)
+            dialogueContinueIcon.SetActive(false);
+
         if (dialoguePanel != null)
             dialoguePanel.SetActive(false);
+    }
+
+    public bool IsDialogueVisible()
+    {
+        return dialoguePanel != null && dialoguePanel.activeSelf;
     }
 
     public void SetInventoryText(string text)
@@ -175,8 +191,15 @@ public class UIManager : MonoBehaviour
 
     public void ShowDeath()
     {
+        HideDialogue();
+
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
+
         if (deathPanel != null)
             deathPanel.SetActive(true);
+
+        Time.timeScale = 0f;
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -187,13 +210,21 @@ public class UIManager : MonoBehaviour
         if (pausePanel != null)
             pausePanel.SetActive(isPaused);
 
+        if (deathPanel != null && deathPanel.activeSelf)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
+
         Cursor.lockState = isPaused ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = isPaused;
     }
 
     public void FlashDamage()
     {
-        if (damageFlashImage == null) return;
+        if (damageFlashImage == null)
+            return;
 
         if (flashRoutine != null)
             StopCoroutine(flashRoutine);
@@ -212,8 +243,15 @@ public class UIManager : MonoBehaviour
         while (timer < flashDuration)
         {
             timer += Time.deltaTime;
-            c.a = Mathf.Lerp(0.5f, 0f, timer / flashDuration);
+
+            float t = 0f;
+
+            if (flashDuration > 0f)
+                t = timer / flashDuration;
+
+            c.a = Mathf.Lerp(0.5f, 0f, t);
             damageFlashImage.color = c;
+
             yield return null;
         }
 

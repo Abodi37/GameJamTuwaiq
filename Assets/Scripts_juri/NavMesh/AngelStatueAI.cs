@@ -15,10 +15,131 @@ public class AngelStatueAI : MonoBehaviour
     public float killDistance = 1.2f;
 
     [Header("Activation")]
-    public string requiredFlag = "puzzle2Solved";
     public bool requireFlagToMove = true;
+    public string requiredFlag = "puzzle2Solved";
+
+    [Header("Vision Rule")]
+    public bool stopWhenVisible = true;
+
+    [Header("Movement Sound")]
+    public AudioSource movementAudioSource;
+    public AudioClip movementSound;
+    public bool loopMovementSound = true;
+    public float movementSoundVolume = 0.7f;
+    public float movingVelocityThreshold = 0.05f;
+
+    [Header("Debug")]
+    public bool showDebugLogs = true;
+
+    private bool hasPrintedNoPlayer;
+    private bool hasPrintedNoAgent;
+    private bool hasPrintedWaitingFlag;
+    private bool hasPrintedNoNavMesh;
 
     void Start()
+    {
+        AutoAssignReferences();
+
+        if (agent != null)
+            agent.speed = moveSpeed;
+
+        SetupAudio();
+    }
+
+    void Update()
+    {
+        AutoAssignReferences();
+
+        if (player == null)
+        {
+            StopMovementSound();
+
+            if (showDebugLogs && !hasPrintedNoPlayer)
+            {
+                Debug.LogWarning(name + ": Angel cannot move because Player is missing.");
+                hasPrintedNoPlayer = true;
+            }
+
+            return;
+        }
+
+        if (agent == null)
+        {
+            StopMovementSound();
+
+            if (showDebugLogs && !hasPrintedNoAgent)
+            {
+                Debug.LogWarning(name + ": Angel cannot move because NavMeshAgent is missing.");
+                hasPrintedNoAgent = true;
+            }
+
+            return;
+        }
+
+        if (!agent.isOnNavMesh)
+        {
+            StopMovementSound();
+
+            if (showDebugLogs && !hasPrintedNoNavMesh)
+            {
+                Debug.LogWarning(name + ": Angel NavMeshAgent is not on a NavMesh. Bake NavMesh or place angel on baked floor.");
+                hasPrintedNoNavMesh = true;
+            }
+
+            return;
+        }
+
+        if (requireFlagToMove)
+        {
+            bool flagReady = GameManager.Instance != null && GameManager.Instance.HasFlag(requiredFlag);
+
+            if (!flagReady)
+            {
+                agent.ResetPath();
+                StopMovementSound();
+
+                if (showDebugLogs && !hasPrintedWaitingFlag)
+                {
+                    Debug.LogWarning(name + ": Angel is waiting for flag: " + requiredFlag);
+                    hasPrintedWaitingFlag = true;
+                }
+
+                return;
+            }
+        }
+
+        bool playerCanSeeMe = stopWhenVisible && IsVisibleToCamera();
+
+        if (playerCanSeeMe)
+        {
+            agent.ResetPath();
+            StopMovementSound();
+
+            if (showDebugLogs)
+                Debug.Log(name + ": Angel stopped because player can see it.");
+
+            return;
+        }
+
+        agent.SetDestination(player.position);
+        UpdateMovementSound();
+
+        if (showDebugLogs)
+        {
+            Debug.Log(
+                name +
+                ": Angel moving. Distance = " +
+                Vector3.Distance(transform.position, player.position)
+            );
+        }
+
+        float distance = Vector3.Distance(transform.position, player.position);
+
+        if (distance <= killDistance)
+            KillPlayer();
+    }
+
+    void AutoAssignReferences()
     {
         if (agent == null)
             agent = GetComponent<NavMeshAgent>();
@@ -29,34 +150,75 @@ public class AngelStatueAI : MonoBehaviour
         if (statueRenderer == null)
             statueRenderer = GetComponentInChildren<Renderer>();
 
-        if (player != null && playerStats == null)
-            playerStats = player.GetComponent<PlayerStats>();
-
-        if (agent != null)
-            agent.speed = moveSpeed;
-    }
-
-    void Update()
-    {
-        if (player == null || agent == null) return;
-
-        if (requireFlagToMove && GameManager.Instance != null && !GameManager.Instance.HasFlag(requiredFlag))
+        if (player == null)
         {
-            agent.ResetPath();
-            return;
+            GameObject foundPlayer = GameObject.FindGameObjectWithTag("Player");
+
+            if (foundPlayer != null)
+                player = foundPlayer.transform;
         }
 
-        bool playerCanSeeMe = IsVisibleToCamera();
+        if (playerStats == null && player != null)
+            playerStats = player.GetComponent<PlayerStats>();
+    }
 
-        if (playerCanSeeMe)
-            agent.ResetPath();
+    void SetupAudio()
+    {
+        if (movementAudioSource == null)
+            movementAudioSource = GetComponent<AudioSource>();
+
+        if (movementAudioSource == null)
+            movementAudioSource = gameObject.AddComponent<AudioSource>();
+
+        movementAudioSource.playOnAwake = false;
+        movementAudioSource.loop = loopMovementSound;
+        movementAudioSource.volume = movementSoundVolume;
+        movementAudioSource.spatialBlend = 1f;
+
+        if (movementSound != null)
+            movementAudioSource.clip = movementSound;
+    }
+
+    void UpdateMovementSound()
+    {
+        if (movementAudioSource == null)
+            return;
+
+        if (movementSound != null && movementAudioSource.clip != movementSound)
+            movementAudioSource.clip = movementSound;
+
+        bool isActuallyMoving =
+            agent.hasPath &&
+            agent.velocity.sqrMagnitude > movingVelocityThreshold * movingVelocityThreshold;
+
+        if (isActuallyMoving)
+            PlayMovementSound();
         else
-            agent.SetDestination(player.position);
+            StopMovementSound();
+    }
 
-        float distance = Vector3.Distance(transform.position, player.position);
+    void PlayMovementSound()
+    {
+        if (movementAudioSource == null)
+            return;
 
-        if (distance <= killDistance)
-            KillPlayer();
+        if (movementAudioSource.clip == null)
+            return;
+
+        movementAudioSource.volume = movementSoundVolume;
+        movementAudioSource.loop = loopMovementSound;
+
+        if (!movementAudioSource.isPlaying)
+            movementAudioSource.Play();
+    }
+
+    void StopMovementSound()
+    {
+        if (movementAudioSource == null)
+            return;
+
+        if (movementAudioSource.isPlaying)
+            movementAudioSource.Stop();
     }
 
     bool IsVisibleToCamera()
@@ -70,7 +232,11 @@ public class AngelStatueAI : MonoBehaviour
 
     void KillPlayer()
     {
+        StopMovementSound();
+
         if (playerStats != null)
             playerStats.Die();
+        else if (UIManager.Instance != null)
+            UIManager.Instance.ShowDeath();
     }
 }

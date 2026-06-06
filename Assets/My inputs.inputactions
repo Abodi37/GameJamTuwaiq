@@ -292,6 +292,17 @@
                     "action": "Continue (SKIP)",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6cdd3700-734a-4a03-a868-a9eb3898775d",
+                    "path": "<Keyboard>/enter",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Continue (SKIP)",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         }

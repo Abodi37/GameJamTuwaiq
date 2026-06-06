@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Events;
@@ -41,6 +42,7 @@ public class SafeDialPuzzle : MonoBehaviour
 
     [Header("Settings")]
     public bool freezeTimeWhileUsing = false;
+    public bool closeViewAfterSolved = true;
 
     [Header("Flags")]
     public string solvedFlag = "puzzle1Solved";
@@ -49,20 +51,17 @@ public class SafeDialPuzzle : MonoBehaviour
     public UnityEvent onCorrectCode;
     public UnityEvent onWrongCode;
 
-    private int codeIndex;
     private bool isUsing;
     private bool solved;
     private bool doorIsOpening;
 
+    private List<int> enteredNumbers = new List<int>();
     private Vector2 dialInput;
     private float numberStepTimer;
 
     private CursorLockMode oldCursorLockMode;
     private bool oldCursorVisible;
     private float oldTimeScale;
-
-    private Quaternion doorClosedRotation;
-    private Quaternion doorOpenRotation;
 
     void Start()
     {
@@ -74,12 +73,6 @@ public class SafeDialPuzzle : MonoBehaviour
 
         if (dialPanel != null)
             dialPanel.SetActive(false);
-
-        if (safeDoor != null)
-        {
-            doorClosedRotation = safeDoor.localRotation;
-            doorOpenRotation = Quaternion.Euler(openDoorLocalRotation);
-        }
 
         UpdateText("Press E to inspect the safe.");
     }
@@ -109,19 +102,11 @@ public class SafeDialPuzzle : MonoBehaviour
 
         if (isUsing) return;
 
-        if (safeVirtualCamera == null)
-        {
-            Debug.LogError("SafeDialPuzzle: Safe Virtual Camera is missing.");
-            return;
-        }
-
-        Debug.Log("SafeDialPuzzle: OpenDial started.");
-
         isUsing = true;
-        codeIndex = 0;
         currentNumber = 0;
         dialInput = Vector2.zero;
         numberStepTimer = 0f;
+        enteredNumbers.Clear();
 
         oldCursorLockMode = Cursor.lockState;
         oldCursorVisible = Cursor.visible;
@@ -132,7 +117,10 @@ public class SafeDialPuzzle : MonoBehaviour
         if (playerVirtualCamera != null)
             playerVirtualCamera.SetActive(false);
 
-        safeVirtualCamera.SetActive(true);
+        if (safeVirtualCamera != null)
+            safeVirtualCamera.SetActive(true);
+        else
+            Debug.LogWarning("SafeDialPuzzle: Safe Virtual Camera is empty. The puzzle still works, but camera will not zoom.");
 
         if (dialPanel != null)
             dialPanel.SetActive(true);
@@ -144,6 +132,8 @@ public class SafeDialPuzzle : MonoBehaviour
         Cursor.visible = false;
 
         UpdateText("A / D rotate   Space confirm   Esc close");
+
+        Debug.Log("SafeDialPuzzle: Opened.");
     }
 
     public void CloseDial()
@@ -169,6 +159,8 @@ public class SafeDialPuzzle : MonoBehaviour
         Cursor.visible = oldCursorVisible;
 
         SetDisabledScripts(true);
+
+        Debug.Log("SafeDialPuzzle: Closed.");
     }
 
     void SetDisabledScripts(bool value)
@@ -224,35 +216,50 @@ public class SafeDialPuzzle : MonoBehaviour
             return;
         }
 
-        Debug.Log("SafeDialPuzzle: Confirmed " + currentNumber + ". Need " + correctCode[codeIndex]);
+        enteredNumbers.Add(currentNumber);
 
-        if (currentNumber == correctCode[codeIndex])
+        Debug.Log("SafeDialPuzzle: Added number " + currentNumber);
+        Debug.Log("SafeDialPuzzle: Entered code = " + GetEnteredCodeText());
+
+        UpdateText("Number saved.");
+
+        if (enteredNumbers.Count < correctCode.Length)
+            return;
+
+        if (IsEnteredCodeCorrect())
         {
-            codeIndex++;
-
-            if (codeIndex >= correctCode.Length)
-            {
-                SolvePuzzle();
-                return;
-            }
-
-            UpdateText("Correct. Choose next number.");
+            SolvePuzzle();
         }
         else
         {
-            codeIndex = 0;
+            Debug.Log("SafeDialPuzzle: Wrong code. Entered = " + GetEnteredCodeText());
+
+            enteredNumbers.Clear();
             currentNumber = 0;
 
             onWrongCode.Invoke();
 
-            UpdateText("Wrong. The dial reset.");
-            Debug.Log("SafeDialPuzzle: Wrong code. Reset.");
+            UpdateText("Wrong code. Try again.");
         }
+    }
+
+    bool IsEnteredCodeCorrect()
+    {
+        if (enteredNumbers.Count != correctCode.Length)
+            return false;
+
+        for (int i = 0; i < correctCode.Length; i++)
+        {
+            if (enteredNumbers[i] != correctCode[i])
+                return false;
+        }
+
+        return true;
     }
 
     void SolvePuzzle()
     {
-        Debug.Log("SafeDialPuzzle: Correct code entered. Opening safe door.");
+        Debug.Log("SafeDialPuzzle: Correct code entered. Opening safe.");
 
         solved = true;
 
@@ -273,10 +280,13 @@ public class SafeDialPuzzle : MonoBehaviour
 
         onCorrectCode.Invoke();
 
-        CloseDial();
-
         if (openDoorOnSolved && safeDoor != null && !doorIsOpening)
             StartCoroutine(OpenDoorRoutine());
+
+        if (closeViewAfterSolved)
+            CloseDial();
+        else
+            UpdateText("Correct. Safe opened.");
     }
 
     IEnumerator OpenDoorRoutine()
@@ -291,6 +301,7 @@ public class SafeDialPuzzle : MonoBehaviour
         while (timer < doorOpenDuration)
         {
             timer += Time.unscaledDeltaTime;
+
             float t = Mathf.Clamp01(timer / doorOpenDuration);
             t = t * t * (3f - 2f * t);
 
@@ -301,6 +312,26 @@ public class SafeDialPuzzle : MonoBehaviour
 
         safeDoor.localRotation = targetRotation;
         doorIsOpening = false;
+
+        Debug.Log("SafeDialPuzzle: Door opened.");
+    }
+
+    string GetEnteredCodeText()
+    {
+        if (enteredNumbers.Count == 0)
+            return "Empty";
+
+        string result = "";
+
+        for (int i = 0; i < enteredNumbers.Count; i++)
+        {
+            result += enteredNumbers[i].ToString();
+
+            if (i < enteredNumbers.Count - 1)
+                result += " ";
+        }
+
+        return result;
     }
 
     void UpdateText(string extraMessage)
@@ -310,8 +341,9 @@ public class SafeDialPuzzle : MonoBehaviour
         int total = correctCode != null ? correctCode.Length : 0;
 
         displayText.text =
-            "NUMBER: " + currentNumber +
-            "\nENTERED: " + codeIndex + " / " + total +
+            "CURRENT NUMBER: " + currentNumber +
+            "\nENTERED: " + GetEnteredCodeText() +
+            "\nCOUNT: " + enteredNumbers.Count + " / " + total +
             "\n" + extraMessage;
     }
 

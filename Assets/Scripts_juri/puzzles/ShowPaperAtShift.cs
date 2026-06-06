@@ -6,8 +6,13 @@ public class ShowPaperAtShift : MonoBehaviour
     public GameObject paperObject;
 
     [Header("Condition")]
+    [Tooltip("Room 3 is usually index 2 if your rooms start from 0.")]
     public int requiredRoomIndex = 2;
+
     public int requiredShiftsLeft = 5;
+
+    [Header("Debug")]
+    public bool showDebugLogs = false;
 
     void Start()
     {
@@ -21,7 +26,8 @@ public class ShowPaperAtShift : MonoBehaviour
 
     void UpdatePaperVisibility()
     {
-        if (paperObject == null) return;
+        if (paperObject == null)
+            return;
 
         if (GameManager.Instance == null)
         {
@@ -29,10 +35,24 @@ public class ShowPaperAtShift : MonoBehaviour
             return;
         }
 
-        bool shouldShow =
-            GameManager.Instance.currentRoomIndex == requiredRoomIndex &&
+        bool isCorrectRoom =
+            GameManager.Instance.currentRoomIndex == requiredRoomIndex;
+
+        bool isCorrectShift =
             GameManager.Instance.currentShiftsLeft == requiredShiftsLeft;
 
-        paperObject.SetActive(shouldShow);
+        bool shouldShow = isCorrectRoom && isCorrectShift;
+
+        if (paperObject.activeSelf != shouldShow)
+            paperObject.SetActive(shouldShow);
+
+        if (showDebugLogs)
+        {
+            Debug.Log(
+                "Paper Check | Room: " + GameManager.Instance.currentRoomIndex +
+                " | Shifts: " + GameManager.Instance.currentShiftsLeft +
+                " | Show: " + shouldShow
+            );
+        }
     }
 }
