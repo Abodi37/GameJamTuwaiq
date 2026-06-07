@@ -13282,6 +13282,7 @@ MonoBehaviour:
   - {fileID: 971600653}
   - {fileID: 2147053372}
   - {fileID: 642661829}
+  - {fileID: 1950796084}
   disableWhileUIOpen:
   - {fileID: 1539540550}
   unlockCursorWhenPanelOpen: 1
@@ -122254,86 +122255,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4173861683334556, guid: 8cc80c08eb78dc54d84131e5dd07d90c, type: 3}
   m_PrefabInstance: {fileID: 1191899806}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1192115766
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1192115772}
-  - component: {fileID: 1192115770}
-  - component: {fileID: 1192115769}
-  m_Layer: 0
-  m_Name: puzzles
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1192115769
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1192115766}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: afd224933aebfe34abe987d9e9a0ab02, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ExitDoorByKey
-  keyFlag: exitKeyCollected
-  puzzle1Flag: puzzle1Solved
-  puzzle2Flag: puzzle2Solved
-  doorTransform: {fileID: 0}
-  openLocalRotation: {x: 0, y: 90, z: 0}
-  openDuration: 1
-  endGamePanel: {fileID: 0}
-  playerUI: {fileID: 0}
-  showEndPanelDelay: 1.2
-  disableOnEnd: []
-  missingKeyMessage: The door is locked. You need the key.
-  missingPuzzleMessage: Something is still unfinished. Solve both puzzles first.
-  openingMessage: The door opens. You made it out.
---- !u!114 &1192115770
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1192115766}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f02783b8acd407046bd63ca8f2ee1dce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ShiftCountKey
-  keyVisual: {fileID: 0}
-  keyCollider: {fileID: 0}
-  requiredFlag: puzzle2Solved
-  requiredRoomIndex: 1
-  requiredShiftsLeft: 6
-  keyFlag: exitKeyCollected
-  itemName: Key
-  destroyAfterPickup: 0
-  showPickupDialogue: 1
-  pickupLine: In my pocket you go!
---- !u!4 &1192115772
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1192115766}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.54764, y: 3.00046, z: -6.80662}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1192179771
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -122445,7 +122366,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 46de2cf23f99b9247b2d50c202174de0, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.76
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -122454,7 +122375,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 500
+  MaxDistance: 6
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -122489,7 +122410,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -250078,6 +249999,7 @@ GameObject:
   - component: {fileID: 1950796085}
   - component: {fileID: 1950796087}
   - component: {fileID: 1950796086}
+  - component: {fileID: 1950796088}
   m_Layer: 5
   m_Name: ESCAPE PANEL
   m_TagString: Untagged
@@ -250144,6 +250066,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1950796084}
   m_CullTransparentMesh: 1
+--- !u!114 &1950796088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1950796084}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8acaf49be452ebb42ada86f5102b4170, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MainMenu
+  gameSceneName: GAME
+  mainPanel: {fileID: 0}
+  settingsPanel: {fileID: 0}
+  creditsPanel: {fileID: 0}
 --- !u!1 &1950910402
 GameObject:
   m_ObjectHideFlags: 0
@@ -264257,7 +264195,6 @@ SceneRoots:
   - {fileID: 1702585908}
   - {fileID: 499219625}
   - {fileID: 195450134}
-  - {fileID: 1192115772}
   - {fileID: 477283452}
   - {fileID: 1104183612}
   - {fileID: 1809343011}
