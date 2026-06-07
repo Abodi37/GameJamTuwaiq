@@ -2454,6 +2454,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_Statue_01c
       objectReference: {fileID: 0}
+    - target: {fileID: 1031125200, guid: abc00000000011227976298642722779, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1031125201, guid: abc00000000011227976298642722779, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.2300034
@@ -2494,10 +2498,38 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1031125204, guid: abc00000000011227976298642722779, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1031125206, guid: abc00000000011227976298642722779, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 44a5bbff48059dc4097a16bec24246ff, type: 2}
+    - target: {fileID: 1031125208, guid: abc00000000011227976298642722779, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125212, guid: abc00000000011227976298642722779, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125216, guid: abc00000000011227976298642722779, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125220, guid: abc00000000011227976298642722779, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125224, guid: abc00000000011227976298642722779, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125228, guid: abc00000000011227976298642722779, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2566,7 +2598,7 @@ MonoBehaviour:
   requireFlagToMove: 1
   requiredFlag: puzzle2Solved
   stopWhenVisible: 1
-  movementAudioSource: {fileID: 0}
+  movementAudioSource: {fileID: 1194294710}
   movementSound: {fileID: 0}
   loopMovementSound: 1
   movementSoundVolume: 0.7
@@ -122277,6 +122309,135 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6867734555758970780, guid: 3006c9354c35135429ecc9cc652b5d94, type: 3}
   m_PrefabInstance: {fileID: 1192179771}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1194294708
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1194294709}
+  - component: {fileID: 1194294710}
+  m_Layer: 0
+  m_Name: angels cries
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1194294709
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1194294708}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 34.6, y: -2.94, z: 19.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2098476227}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!82 &1194294710
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1194294708}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 46de2cf23f99b9247b2d50c202174de0, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 1
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1194862431
 GameObject:
   m_ObjectHideFlags: 0
@@ -239304,6 +239465,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_Statue_01a
       objectReference: {fileID: 0}
+    - target: {fileID: 1031125134, guid: abc00000000003064275970823802713, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1031125135, guid: abc00000000003064275970823802713, type: 3}
       propertyPath: m_LocalPosition.x
       value: 39.61
@@ -239344,10 +239509,38 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1031125138, guid: abc00000000003064275970823802713, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1031125140, guid: abc00000000003064275970823802713, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 44a5bbff48059dc4097a16bec24246ff, type: 2}
+    - target: {fileID: 1031125142, guid: abc00000000003064275970823802713, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125146, guid: abc00000000003064275970823802713, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125150, guid: abc00000000003064275970823802713, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125154, guid: abc00000000003064275970823802713, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125158, guid: abc00000000003064275970823802713, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125162, guid: abc00000000003064275970823802713, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -239394,7 +239587,7 @@ MonoBehaviour:
   requireFlagToMove: 1
   requiredFlag: puzzle2Solved
   stopWhenVisible: 1
-  movementAudioSource: {fileID: 0}
+  movementAudioSource: {fileID: 1194294710}
   movementSound: {fileID: 0}
   loopMovementSound: 1
   movementSoundVolume: 0.7
@@ -249928,6 +250121,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_Statue_01b
       objectReference: {fileID: 0}
+    - target: {fileID: 1031125168, guid: abc00000000011903491689814018322, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1031125169, guid: abc00000000011903491689814018322, type: 3}
       propertyPath: m_LocalPosition.x
       value: 24.089998
@@ -249968,6 +250165,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1031125172, guid: abc00000000011903491689814018322, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1031125174, guid: abc00000000011903491689814018322, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -249976,6 +250177,30 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: ac61886624fd1a54a9c48c51825a01be, type: 2}
+    - target: {fileID: 1031125176, guid: abc00000000011903491689814018322, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125180, guid: abc00000000011903491689814018322, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125184, guid: abc00000000011903491689814018322, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125188, guid: abc00000000011903491689814018322, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125192, guid: abc00000000011903491689814018322, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1031125196, guid: abc00000000011903491689814018322, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -250022,7 +250247,7 @@ MonoBehaviour:
   requireFlagToMove: 1
   requiredFlag: puzzle2Solved
   stopWhenVisible: 1
-  movementAudioSource: {fileID: 0}
+  movementAudioSource: {fileID: 1194294710}
   movementSound: {fileID: 0}
   loopMovementSound: 1
   movementSoundVolume: 0.7
@@ -260492,6 +260717,7 @@ Transform:
   - {fileID: 1838800281}
   - {fileID: 1958284126}
   - {fileID: 42552934}
+  - {fileID: 1194294709}
   - {fileID: 1282352122}
   - {fileID: 1570590829}
   m_Father: {fileID: 0}
