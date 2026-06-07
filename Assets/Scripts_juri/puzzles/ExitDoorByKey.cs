@@ -1,58 +1,174 @@
+using System.Collections;
 using UnityEngine;
-using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class ExitDoorByKey : MonoBehaviour
 {
-    [Header("Requirement")]
-    public string requiredKeyFlag = "exitKeyCollected";
+    [Header("Requirements")]
+    public string keyFlag = "exitKeyCollected";
+    public string puzzle1Flag = "puzzle1Solved";
+    public string puzzle2Flag = "puzzle2Solved";
 
     [Header("Door")]
-    public Transform door;
-    public Vector3 openRotation = new Vector3(0f, 90f, 0f);
-    public float openSpeed = 3f;
+    public Transform doorTransform;
+    public Vector3 openLocalRotation = new Vector3(0f, 90f, 0f);
+    public float openDuration = 1f;
 
-    [Header("Events")]
-    public UnityEvent onDoorOpened;
+    [Header("End Game Panel")]
+    public GameObject endGamePanel;
+    public GameObject playerUI;
+    public float showEndPanelDelay = 1.2f;
 
-    private Quaternion targetRotation;
+    [Header("Player")]
+    public Behaviour[] disableOnEnd;
+
+    [Header("Messages")]
+    public string missingKeyMessage = "The door is locked. You need the key.";
+    public string missingPuzzleMessage = "Something is still unfinished. Solve both puzzles first.";
+    public string openingMessage = "The door opens. You made it out.";
+
     private bool opened;
+    private bool opening;
 
     void Start()
     {
-        if (door == null)
-            door = transform;
-
-        targetRotation = Quaternion.Euler(door.eulerAngles + openRotation);
-    }
-
-    void Update()
-    {
-        if (opened)
-            door.rotation = Quaternion.Lerp(door.rotation, targetRotation, Time.deltaTime * openSpeed);
+        if (endGamePanel != null)
+            endGamePanel.SetActive(false);
     }
 
     public void TryOpenDoor()
     {
-        if (opened) return;
+        if (opened || opening)
+            return;
 
-        if (GameManager.Instance != null && GameManager.Instance.HasFlag(requiredKeyFlag))
+        if (GameManager.Instance == null)
         {
-            opened = true;
-            onDoorOpened.Invoke();
-
-            if (UIManager.Instance != null)
-                UIManager.Instance.SetObjective("You escaped.");
+            ShowMessage("GameManager is missing.");
+            return;
         }
-        else
+
+        bool hasKey = GameManager.Instance.HasFlag(keyFlag);
+        bool puzzle1Solved = GameManager.Instance.HasFlag(puzzle1Flag);
+        bool puzzle2Solved = GameManager.Instance.HasFlag(puzzle2Flag);
+
+        if (!hasKey)
         {
-            if (DialogueSystem.Instance != null)
+            ShowMessage(missingKeyMessage);
+            return;
+        }
+
+        if (!puzzle1Solved || !puzzle2Solved)
+        {
+            ShowMessage(missingPuzzleMessage);
+            return;
+        }
+
+        StartCoroutine(OpenDoorAndEndGame());
+    }
+
+    IEnumerator OpenDoorAndEndGame()
+    {
+        opening = true;
+        opened = true;
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowInteract("");
+            UIManager.Instance.HideDialogue();
+            UIManager.Instance.SetObjective(openingMessage);
+        }
+
+        if (doorTransform != null)
+        {
+            Quaternion startRotation = doorTransform.localRotation;
+            Quaternion targetRotation = Quaternion.Euler(openLocalRotation);
+
+            float timer = 0f;
+
+            while (timer < openDuration)
             {
-                DialogueSystem.Instance.StartDialogue(new string[]
-                {
-                    "The exit refuses to move.",
-                    "It needs a key from another room."
-                });
+                timer += Time.deltaTime;
+
+                float t = Mathf.Clamp01(timer / openDuration);
+                t = t * t * (3f - 2f * t);
+
+                doorTransform.localRotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+                yield return null;
             }
+
+            doorTransform.localRotation = targetRotation;
         }
+
+        yield return new WaitForSeconds(showEndPanelDelay);
+
+        ShowEndPanel();
+    }
+
+    void ShowEndPanel()
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.CloseAllPanels();
+
+            if (UIManager.Instance.dialoguePanel != null)
+                UIManager.Instance.dialoguePanel.SetActive(false);
+        }
+
+        if (playerUI != null)
+            playerUI.SetActive(false);
+
+        if (endGamePanel != null)
+            endGamePanel.SetActive(true);
+
+        for (int i = 0; i < disableOnEnd.Length; i++)
+        {
+            if (disableOnEnd[i] != null)
+                disableOnEnd[i].enabled = false;
+        }
+
+        Time.timeScale = 0f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    void ShowMessage(string message)
+    {
+        if (DialogueSystem.Instance != null)
+        {
+            DialogueSystem.Instance.StartDialogue(new string[]
+            {
+                message
+            });
+        }
+        else if (UIManager.Instance != null)
+        {
+            UIManager.Instance.SetObjective(message);
+        }
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(currentScene.buildIndex);
+    }
+
+    public void GoToMainMenu(string sceneName)
+    {
+        Time.timeScale = 1f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        SceneManager.LoadScene(sceneName);
+    }
+
+    public void QuitGame()
+    {
+        Time.timeScale = 1f;
+        Application.Quit();
     }
 }
