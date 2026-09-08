@@ -9,6 +9,12 @@ public class PlayerInteraction : MonoBehaviour
     [Header("Interaction")]
     public float interactDistance = 3f;
 
+    [Tooltip("Layers the interaction ray is allowed to hit. Leave as Everything if interactables are not on their own layer yet.")]
+    public LayerMask interactLayers = ~0;
+
+    [Tooltip("Ignore trigger colliders when looking for something to interact with.")]
+    public bool ignoreTriggers = true;
+
     [Header("Holding")]
     public Transform holdPoint;
 
@@ -85,7 +91,11 @@ public class PlayerInteraction : MonoBehaviour
         Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, interactDistance))
+        QueryTriggerInteraction triggerMode = ignoreTriggers
+            ? QueryTriggerInteraction.Ignore
+            : QueryTriggerInteraction.Collide;
+
+        if (Physics.Raycast(ray, out hit, interactDistance, interactLayers, triggerMode))
         {
             InteractableObject target = hit.collider.GetComponentInParent<InteractableObject>();
 

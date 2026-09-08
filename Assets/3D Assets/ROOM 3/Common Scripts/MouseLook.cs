@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 
 // Daniel Flanigan, 2014
 // This is a combined mouse look and camera move script.
@@ -32,10 +33,10 @@ public class MouseLook : MonoBehaviour
 	public float maxSpeed = 5;
 	public float dampingSpeed = 0.2f;
 	
-	public KeyCode fwdKey = KeyCode.W;
-	public KeyCode leftKey = KeyCode.A;
-	public KeyCode backKey = KeyCode.S;
-	public KeyCode rightKey = KeyCode.D;
+	public Key fwdKey = Key.W;
+	public Key leftKey = Key.A;
+	public Key backKey = Key.S;
+	public Key rightKey = Key.D;
 	private float speedX, speedZ=0;
 
 	void Start ()
@@ -59,7 +60,7 @@ public class MouseLook : MonoBehaviour
 		var targetCharacterOrientation = Quaternion.Euler (targetCharacterDirection);
 		
 		// Get raw mouse input for a cleaner reading on more sensitive mice.
-		var mouseDelta = new Vector2 (Input.GetAxisRaw ("Mouse X"), Input.GetAxisRaw ("Mouse Y"));
+		var mouseDelta = Mouse.current != null ? Mouse.current.delta.ReadValue () : Vector2.zero;
 		
 		// Scale input against the sensitivity setting and multiply that against the smoothing value.
 		mouseDelta = Vector2.Scale (mouseDelta, new Vector2 (sensitivity.x * smoothing.x, sensitivity.y * smoothing.y));
@@ -95,17 +96,25 @@ public class MouseLook : MonoBehaviour
 		}
 	}
 
+	static bool IsPressed (Key key)
+	{
+		// Legacy Input.GetKey throws when Active Input Handling is "Input System
+		// Package (New)", which is how this project is configured.
+		var keyboard = Keyboard.current;
+		return keyboard != null && keyboard[key].isPressed;
+	}
+
 	void FixedUpdate(){
 
-		if (Input.GetKey (rightKey)) {
+		if (IsPressed (rightKey)) {
 			speedX += acceleration * Time.deltaTime;
 		}
-		else if (Input.GetKey (leftKey)) {
+		else if (IsPressed (leftKey)) {
 			speedX -= acceleration * Time.deltaTime;
 		}
-		if (Input.GetKey (backKey)) {
+		if (IsPressed (backKey)) {
 			speedZ -= acceleration * Time.deltaTime;
-		} else if (Input.GetKey (fwdKey)) {
+		} else if (IsPressed (fwdKey)) {
 			speedZ += acceleration * Time.deltaTime;
 		}
 

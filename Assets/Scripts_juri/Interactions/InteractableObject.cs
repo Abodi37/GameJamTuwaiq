@@ -43,6 +43,8 @@ public class InteractableObject : MonoBehaviour
     private Material[] materials;
     private Color[] originalEmissionColors;
     private bool[] hadEmissionKeyword;
+    private bool materialsCached;
+    private SimpleOutline outline;
 
     void Start()
     {
@@ -52,16 +54,32 @@ public class InteractableObject : MonoBehaviour
         if (renderers == null || renderers.Length == 0)
             renderers = GetComponentsInChildren<Renderer>();
 
-        CacheMaterials();
+        outline = GetComponent<SimpleOutline>();
+
+        if (outline == null)
+            outline = GetComponentInChildren<SimpleOutline>();
+
+        // Materials are deliberately not touched here. Reading Renderer.materials
+        // clones every material and drops the object out of the SRP batcher, so it
+        // is deferred until this object is actually highlighted for the first time.
     }
 
     void CacheMaterials()
     {
+        if (materialsCached)
+            return;
+
+        materialsCached = true;
+
+        if (renderers == null)
+            return;
+
         int count = 0;
 
         for (int i = 0; i < renderers.Length; i++)
         {
-            count += renderers[i].materials.Length;
+            if (renderers[i] != null)
+                count += renderers[i].sharedMaterials.Length;
         }
 
         materials = new Material[count];
@@ -72,9 +90,12 @@ public class InteractableObject : MonoBehaviour
 
         for (int i = 0; i < renderers.Length; i++)
         {
+            if (renderers[i] == null)
+                continue;
+
             Material[] mats = renderers[i].materials;
 
-            for (int j = 0; j < mats.Length; j++)
+            for (int j = 0; j < mats.Length && index < materials.Length; j++)
             {
                 materials[index] = mats[j];
 
@@ -170,43 +191,48 @@ public class InteractableObject : MonoBehaviour
     }
 
     public void SetHighlighted(bool value)
-{
-    if (!enableHighlight)
-        value = false;
-
-    if (isHeld)
-        value = false;
-
-    SimpleOutline outline = GetComponent<SimpleOutline>();
-
-    if (outline == null)
-        outline = GetComponentInChildren<SimpleOutline>();
-
-    if (outline != null)
     {
-        outline.SetOutline(value);
-        return;
-    }
+        if (!enableHighlight)
+            value = false;
 
-    if (materials == null) return;
+        if (isHeld)
+            value = false;
 
-    for (int i = 0; i < materials.Length; i++)
-    {
-        if (materials[i] == null) continue;
-        if (!materials[i].HasProperty("_EmissionColor")) continue;
-
-        if (value)
+        if (outline != null)
         {
-            materials[i].EnableKeyword("_EMISSION");
-            materials[i].SetColor("_EmissionColor", highlightColor * highlightPower);
+            outline.SetOutline(value);
+            return;
         }
-        else
-        {
-            materials[i].SetColor("_EmissionColor", originalEmissionColors[i]);
 
-            if (!hadEmissionKeyword[i])
-                materials[i].DisableKeyword("_EMISSION");
+        // Emission fallback. Nothing is cloned until the first actual highlight,
+        // so objects that are never looked at keep their shared materials.
+        if (!materialsCached)
+        {
+            if (!value)
+                return;
+
+            CacheMaterials();
+        }
+
+        if (materials == null) return;
+
+        for (int i = 0; i < materials.Length; i++)
+        {
+            if (materials[i] == null) continue;
+            if (!materials[i].HasProperty("_EmissionColor")) continue;
+
+            if (value)
+            {
+                materials[i].EnableKeyword("_EMISSION");
+                materials[i].SetColor("_EmissionColor", highlightColor * highlightPower);
+            }
+            else
+            {
+                materials[i].SetColor("_EmissionColor", originalEmissionColors[i]);
+
+                if (!hadEmissionKeyword[i])
+                    materials[i].DisableKeyword("_EMISSION");
+            }
         }
     }
-}
 }

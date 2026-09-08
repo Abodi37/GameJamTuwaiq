@@ -26,6 +26,10 @@ public class ShiftCountKey : MonoBehaviour
     public string pickupLine = "In my pocket you go!";
 
     private bool pickedUp;
+    private float checkTimer;
+
+    [Tooltip("Seconds between visibility checks. The conditions only change a handful of times per run.")]
+    public float checkInterval = 0.25f;
 
     void Start()
     {
@@ -34,6 +38,16 @@ public class ShiftCountKey : MonoBehaviour
 
     void Update()
     {
+        if (pickedUp)
+            return;
+
+        checkTimer -= Time.deltaTime;
+
+        if (checkTimer > 0f)
+            return;
+
+        checkTimer = checkInterval;
+
         UpdateVisibility();
     }
 
@@ -73,10 +87,12 @@ public class ShiftCountKey : MonoBehaviour
 
     void SetKeyVisible(bool value)
     {
-        if (keyVisual != null)
+        // Only write when the state actually changes - SetActive on an already
+        // active object still walks the hierarchy and fires enable callbacks.
+        if (keyVisual != null && keyVisual.activeSelf != value)
             keyVisual.SetActive(value);
 
-        if (keyCollider != null)
+        if (keyCollider != null && keyCollider.enabled != value)
             keyCollider.enabled = value;
     }
 

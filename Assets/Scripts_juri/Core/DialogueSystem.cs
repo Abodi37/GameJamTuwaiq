@@ -25,6 +25,12 @@ public class DialogueSystem : MonoBehaviour
         Instance = this;
     }
 
+    void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     void Start()
     {
         EndDialogue();

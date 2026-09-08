@@ -1,11 +1,14 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 public class FlagInteractable : MonoBehaviour
 {
     [Header("Interaction")]
     public string playerTag = "Player";
-    public KeyCode interactKey = KeyCode.E;
+
+    [Tooltip("Key used to interact. Read through the new Input System - the project has legacy input disabled.")]
+    public Key interactKey = Key.E;
 
     [Header("Required Flag Optional")]
     public string requiredFlag;
@@ -33,8 +36,17 @@ public class FlagInteractable : MonoBehaviour
     void Update()
     {
         if (!playerInside) return;
+        if (used) return;
 
-        if (Input.GetKeyDown(interactKey))
+        // The project is set to "Input System Package (New)" only, where
+        // UnityEngine.Input.GetKeyDown throws an InvalidOperationException every
+        // time it is called.
+        Keyboard keyboard = Keyboard.current;
+
+        if (keyboard == null)
+            return;
+
+        if (keyboard[interactKey].wasPressedThisFrame)
         {
             Interact();
         }
@@ -59,7 +71,7 @@ public class FlagInteractable : MonoBehaviour
             }
         }
 
-        if (setFlag && !string.IsNullOrEmpty(flagToSet))
+        if (setFlag && !string.IsNullOrEmpty(flagToSet) && GameManager.Instance != null)
         {
             GameManager.Instance.SetFlag(flagToSet, true);
         }

@@ -14,6 +14,11 @@ public class ShowPaperAtShift : MonoBehaviour
     [Header("Debug")]
     public bool showDebugLogs = false;
 
+    [Tooltip("Seconds between checks. Room and shift count only change a handful of times per run.")]
+    public float checkInterval = 0.25f;
+
+    private float checkTimer;
+
     void Start()
     {
         UpdatePaperVisibility();
@@ -21,6 +26,13 @@ public class ShowPaperAtShift : MonoBehaviour
 
     void Update()
     {
+        checkTimer -= Time.deltaTime;
+
+        if (checkTimer > 0f)
+            return;
+
+        checkTimer = checkInterval;
+
         UpdatePaperVisibility();
     }
 
@@ -48,7 +60,7 @@ public class ShowPaperAtShift : MonoBehaviour
 
         if (showDebugLogs)
         {
-            Debug.Log(
+            GameLog.Log(
                 "Paper Check | Room: " + GameManager.Instance.currentRoomIndex +
                 " | Shifts: " + GameManager.Instance.currentShiftsLeft +
                 " | Show: " + shouldShow

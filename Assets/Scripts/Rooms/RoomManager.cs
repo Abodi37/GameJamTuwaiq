@@ -16,7 +16,21 @@ public class RoomManager : MonoBehaviour
 
     void Awake()
     {
+        // Matches the guard used by GameManager / UIManager / DialogueSystem.
+        // Without it a second RoomManager silently steals the static reference.
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     void Start()
@@ -66,7 +80,7 @@ public class RoomManager : MonoBehaviour
         if (GameManager.Instance != null)
             GameManager.Instance.SetCurrentRoom(roomIndex);
 
-        Debug.Log("Entered Room: " + GetCurrentRoomName() + " Visit: " + roomVisitCounts[roomIndex]);
+        GameLog.Log("Entered Room: " + GetCurrentRoomName() + " Visit: " + roomVisitCounts[roomIndex]);
     }
 
     public int GetRoomVisitCount(int roomIndex)

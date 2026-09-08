@@ -43,6 +43,7 @@ public class UIManager : MonoBehaviour
     public float flashDuration = 0.25f;
 
     private Coroutine flashRoutine;
+    private string lastInteractMessage = null;
 
     void Awake()
     {
@@ -53,6 +54,12 @@ public class UIManager : MonoBehaviour
         }
 
         Instance = this;
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
     }
 
     void Start()
@@ -146,9 +153,19 @@ public class UIManager : MonoBehaviour
             return;
 
         bool hasMessage = !string.IsNullOrWhiteSpace(message);
+        string newText = hasMessage ? message : "";
+
+        // PlayerInteraction calls this every frame. Writing the text and toggling
+        // the GameObject unconditionally dirtied the canvas on every single frame,
+        // forcing a full canvas rebuild and a TMP mesh regeneration. Only touch the
+        // UI when something actually changed.
+        if (newText == lastInteractMessage)
+            return;
+
+        lastInteractMessage = newText;
 
         interactText.gameObject.SetActive(hasMessage);
-        interactText.text = hasMessage ? message : "";
+        interactText.text = newText;
     }
 
     public void ShowDialogueLine(string line)

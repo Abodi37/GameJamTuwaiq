@@ -75,8 +75,19 @@ public class VolumetricLight : MonoBehaviour
     /// <summary>
     /// 
     /// </summary>
-    void Start() 
+    void Start()
     {
+        // This is a Built-in Render Pipeline effect (Michal Skalsky's volumetric
+        // lights). The project renders with URP, where Light.AddCommandBuffer does
+        // nothing and the "Sandbox/VolumetricLight" shader is not in the build, so
+        // the original code threw an exception on every instance at scene load.
+        // Bail out quietly instead, and let the component be removed at leisure.
+        if (UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline != null)
+        {
+            enabled = false;
+            return;
+        }
+
 #if UNITY_5_5_OR_NEWER
         if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 ||
             SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal || SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||

@@ -6,18 +6,38 @@ public class SimpleOutline : MonoBehaviour
     public Color outlineColor = Color.white;
     public float outlineScale = 1.03f;
 
-    private GameObject outlineObject;
-    private Renderer[] outlineRenderers;
+    // One material shared by every outline in the scene, so the SRP batcher
+    // can still batch the outline hulls together.
+    private static Material sharedOutlineMaterial;
+    private static bool shaderLookupFailed;
 
-    void Awake()
+    private GameObject outlineObject;
+    private bool built;
+
+    public void SetOutline(bool value)
     {
-        CreateOutline();
-        SetOutline(false);
+        // Built on first use instead of in Awake: an object that is never
+        // highlighted never pays for the duplicated meshes.
+        if (value && !built)
+            CreateOutline();
+
+        if (outlineObject != null)
+            outlineObject.SetActive(value);
     }
 
     void CreateOutline()
     {
+        built = true;
+
+        Material outlineMaterial = GetOutlineMaterial();
+
+        if (outlineMaterial == null)
+            return;
+
         MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>();
+
+        if (meshFilters.Length == 0)
+            return;
 
         outlineObject = new GameObject("Outline");
         outlineObject.transform.SetParent(transform);
@@ -25,12 +45,13 @@ public class SimpleOutline : MonoBehaviour
         outlineObject.transform.localRotation = Quaternion.identity;
         outlineObject.transform.localScale = Vector3.one;
 
-        Material outlineMaterial = new Material(Shader.Find("Unlit/Color"));
-        outlineMaterial.color = outlineColor;
-
         for (int i = 0; i < meshFilters.Length; i++)
         {
             MeshFilter sourceFilter = meshFilters[i];
+
+            if (sourceFilter.sharedMesh == null)
+                continue;
+
             MeshRenderer sourceRenderer = sourceFilter.GetComponent<MeshRenderer>();
 
             if (sourceRenderer == null)
@@ -48,16 +69,43 @@ public class SimpleOutline : MonoBehaviour
 
             MeshRenderer newRenderer = child.AddComponent<MeshRenderer>();
             newRenderer.sharedMaterial = outlineMaterial;
+            newRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            newRenderer.receiveShadows = false;
+            newRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+            newRenderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
 
             child.layer = sourceFilter.gameObject.layer;
         }
 
-        outlineRenderers = outlineObject.GetComponentsInChildren<Renderer>();
+        outlineObject.SetActive(false);
     }
 
-    public void SetOutline(bool value)
+    Material GetOutlineMaterial()
     {
-        if (outlineObject != null)
-            outlineObject.SetActive(value);
+        if (sharedOutlineMaterial != null)
+            return sharedOutlineMaterial;
+
+        if (shaderLookupFailed)
+            return null;
+
+        // "Unlit/Color" is a Built-in pipeline shader and renders magenta under
+        // URP, so look for the URP shader first. Shader.Find only sees shaders
+        // that shipped with the build, which is true for both of these.
+        Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+
+        if (shader == null)
+            shader = Shader.Find("Sprites/Default");
+
+        if (shader == null)
+        {
+            shaderLookupFailed = true;
+            Debug.LogWarning("SimpleOutline: no usable outline shader found, outlines are disabled.");
+            return null;
+        }
+
+        sharedOutlineMaterial = new Material(shader);
+        sharedOutlineMaterial.color = outlineColor;
+
+        return sharedOutlineMaterial;
     }
 }

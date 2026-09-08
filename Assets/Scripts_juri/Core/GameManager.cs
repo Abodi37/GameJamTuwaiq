@@ -24,6 +24,12 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
+    void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     public void SetFlag(string flagName, bool value)
     {
         if (string.IsNullOrEmpty(flagName)) return;
@@ -33,7 +39,7 @@ public class GameManager : MonoBehaviour
         else
             flags.Add(flagName, value);
 
-        Debug.Log("Flag: " + flagName + " = " + value);
+        GameLog.Log("Flag: " + flagName + " = " + value);
         UpdateInventoryUI();
     }
 
@@ -49,7 +55,7 @@ public class GameManager : MonoBehaviour
         if (!inventoryItems.Contains(itemName))
             inventoryItems.Add(itemName);
 
-        Debug.Log("Item Added: " + itemName);
+        GameLog.Log("Item Added: " + itemName);
         UpdateInventoryUI();
     }
 

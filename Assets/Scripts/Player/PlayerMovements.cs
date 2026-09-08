@@ -34,8 +34,8 @@ public class PlayerMovements : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector3 move = movement.x * transform.right + movement.y * transform.forward;
-        myController.Move(move * speed * Time.deltaTime);
+        if (myController == null || !myController.enabled)
+            return;
 
         // Gravity
         if (myController.isGrounded && velocity.y < 0)
@@ -44,14 +44,21 @@ public class PlayerMovements : MonoBehaviour
         }
 
         velocity.y += gravity * Time.deltaTime;
-        myController.Move(velocity * Time.deltaTime);
 
+        // Horizontal movement and gravity are applied in a single Move call.
+        // Two separate calls meant two full collision sweeps per frame.
+        Vector3 move = movement.x * transform.right + movement.y * transform.forward;
+        myController.Move((move * speed + velocity) * Time.deltaTime);
+
+        // NOTE: camRot is a mouse delta, so it is deliberately NOT scaled by
+        // Time.deltaTime - that would make the look speed frame-rate dependent in
+        // the opposite direction. Sensitivity is left exactly as it was tuned.
         xRotation -= camRot.y;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        camRotate.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        if (camRotate != null)
+            camRotate.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
         transform.Rotate(Vector3.up * camRot.x);
-        
     }
 }

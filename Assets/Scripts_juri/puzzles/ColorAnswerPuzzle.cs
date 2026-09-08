@@ -102,8 +102,7 @@ public class ColorAnswerPuzzle : MonoBehaviour
         UpdateQuestionText();
         UpdateFeedbackText("Write the answer, then press Submit or Space.");
 
-        Debug.Log("ColorAnswerPuzzle: Opened.");
-        Debug.Log("ColorAnswerPuzzle: Correct answer is [" + GetCorrectAnswer() + "]");
+        GameLog.Log("ColorAnswerPuzzle: Opened.");
     }
 
     public void CloseQuestion()
@@ -127,7 +126,7 @@ public class ColorAnswerPuzzle : MonoBehaviour
 
         ForceHideDialogue();
 
-        Debug.Log("ColorAnswerPuzzle: Closed.");
+        GameLog.Log("ColorAnswerPuzzle: Closed.");
     }
 
     public void SubmitFromInput()
@@ -158,8 +157,8 @@ public class ColorAnswerPuzzle : MonoBehaviour
         string playerAnswer = NormalizeAnswer(answer);
         string correctAnswer = NormalizeAnswer(GetCorrectAnswer());
 
-        Debug.Log("ColorAnswerPuzzle: Player answer = [" + playerAnswer + "]");
-        Debug.Log("ColorAnswerPuzzle: Correct answer = [" + correctAnswer + "]");
+        GameLog.Log("ColorAnswerPuzzle: Player answer = [" + playerAnswer + "]");
+        GameLog.Log("ColorAnswerPuzzle: Correct answer = [" + correctAnswer + "]");
 
         if (string.IsNullOrEmpty(playerAnswer))
         {
@@ -187,7 +186,7 @@ public class ColorAnswerPuzzle : MonoBehaviour
 
             CloseQuestion();
 
-            Debug.Log("ColorAnswerPuzzle: Solved. Flag set = " + solvedFlag);
+            GameLog.Log("ColorAnswerPuzzle: Solved. Flag set = " + solvedFlag);
             return;
         }
 
@@ -332,7 +331,7 @@ public class ColorAnswerPuzzle : MonoBehaviour
     void KillPlayer()
     {
         if (playerStats == null)
-            playerStats = FindObjectOfType<PlayerStats>();
+            playerStats = FindFirstObjectByType<PlayerStats>();
 
         if (playerStats != null)
             playerStats.Die();

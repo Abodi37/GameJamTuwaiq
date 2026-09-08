@@ -153,8 +153,8 @@ public class SafeDialPuzzle : MonoBehaviour
         string cleanPlayerCode = NormalizeCode(playerCode);
         string cleanCorrectCode = NormalizeCode(correctCode);
 
-        Debug.Log("SafeDialPuzzle: Player code = [" + cleanPlayerCode + "]");
-        Debug.Log("SafeDialPuzzle: Correct code = [" + cleanCorrectCode + "]");
+        GameLog.Log("SafeDialPuzzle: Player code = [" + cleanPlayerCode + "]");
+        GameLog.Log("SafeDialPuzzle: Correct code = [" + cleanCorrectCode + "]");
 
         if (string.IsNullOrEmpty(cleanPlayerCode))
         {

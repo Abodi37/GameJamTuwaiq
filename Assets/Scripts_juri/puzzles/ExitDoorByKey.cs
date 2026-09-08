@@ -121,10 +121,13 @@ public class ExitDoorByKey : MonoBehaviour
         if (endGamePanel != null)
             endGamePanel.SetActive(true);
 
-        for (int i = 0; i < disableOnEnd.Length; i++)
+        if (disableOnEnd != null)
         {
-            if (disableOnEnd[i] != null)
-                disableOnEnd[i].enabled = false;
+            for (int i = 0; i < disableOnEnd.Length; i++)
+            {
+                if (disableOnEnd[i] != null)
+                    disableOnEnd[i].enabled = false;
+            }
         }
 
         Time.timeScale = 0f;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class TalkToMe : MonoBehaviour
 {
@@ -10,18 +11,31 @@ public class TalkToMe : MonoBehaviour
 
     [Header("Interaction")]
     public string playerTag = "Player";
-    public KeyCode interactKey = KeyCode.E;
+
+    [Tooltip("Key used to talk. Read through the new Input System - the project has legacy input disabled.")]
+    public Key interactKey = Key.E;
 
     private bool playerInside;
 
     void Update()
     {
-        if (playerInside && Input.GetKeyDown(interactKey))
+        if (!playerInside)
+            return;
+
+        // The project is set to "Input System Package (New)" only, where
+        // UnityEngine.Input.GetKeyDown throws an InvalidOperationException every
+        // time it is called.
+        Keyboard keyboard = Keyboard.current;
+
+        if (keyboard == null)
+            return;
+
+        if (!keyboard[interactKey].wasPressedThisFrame)
+            return;
+
+        if (dialoguePlayer != null)
         {
-            if (dialoguePlayer != null)
-            {
-                dialoguePlayer.StartDialogue(lines);
-            }
+            dialoguePlayer.StartDialogue(lines);
         }
     }
 

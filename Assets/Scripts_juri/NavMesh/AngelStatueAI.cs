@@ -28,6 +28,14 @@ public class AngelStatueAI : MonoBehaviour
     public float movementSoundVolume = 0.7f;
     public float movingVelocityThreshold = 0.05f;
 
+    [Header("Performance")]
+    [Tooltip("Seconds between path recalculations. 0 recalculates every frame.")]
+    public float destinationUpdateRate = 0.2f;
+
+    // Reused every frame so the visibility test does not allocate a new Plane[6].
+    private readonly Plane[] frustumPlanes = new Plane[6];
+    private float destinationTimer;
+
     void Start()
     {
         AutoAssignReferences();
@@ -40,8 +48,9 @@ public class AngelStatueAI : MonoBehaviour
 
     void Update()
     {
-        AutoAssignReferences();
-
+        // AutoAssignReferences used to run every frame, which meant a
+        // GameObject.FindGameObjectWithTag plus two GetComponent walks per statue
+        // per frame. The references cannot change at runtime, so Start is enough.
         if (player == null || agent == null)
         {
             StopMovementSound();
@@ -79,7 +88,16 @@ public class AngelStatueAI : MonoBehaviour
 
         agent.speed = moveSpeed;
         agent.isStopped = false;
-        agent.SetDestination(player.position);
+
+        // Recalculating a full path every frame is the single most expensive thing
+        // a NavMeshAgent can do. The player cannot outrun a 0.2s refresh.
+        destinationTimer -= Time.deltaTime;
+
+        if (destinationTimer <= 0f)
+        {
+            destinationTimer = destinationUpdateRate;
+            agent.SetDestination(player.position);
+        }
 
         UpdateMovementSound();
 
@@ -176,8 +194,10 @@ public class AngelStatueAI : MonoBehaviour
         if (playerCamera == null || statueRenderer == null)
             return false;
 
-        Plane[] planes = GeometryUtility.CalculateFrustumPlanes(playerCamera);
-        return GeometryUtility.TestPlanesAABB(planes, statueRenderer.bounds);
+        // Non-allocating overload: the array version allocated a Plane[6] every
+        // frame for every statue, which added up to constant GC pressure.
+        GeometryUtility.CalculateFrustumPlanes(playerCamera, frustumPlanes);
+        return GeometryUtility.TestPlanesAABB(frustumPlanes, statueRenderer.bounds);
     }
 
     void KillPlayer()
